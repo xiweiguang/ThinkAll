@@ -11,7 +11,7 @@
 
 想集 ThinkAll 是一款面向企业级用户的数据可视化与智能办公平台，提供从数据接入、图表设计、仪表板搭建到故事板演示的全链路能力，并内置 RBAC 权限体系与企业通讯功能。
 
----
+***
 
 ## 核心功能
 
@@ -41,7 +41,7 @@
 - **数据大屏** — 大屏可视化模板、实时数据刷新、多屏适配
 - **系统集成** — 第三方系统对接、单点登录（SSO）、数据同步
 
----
+***
 
 ## 安装与使用
 
@@ -54,39 +54,28 @@
 ### 安装步骤
 
 1. **克隆仓库**
-
    ```bash
    git clone https://github.com/你的用户名/ThinkAll.git
    cd ThinkAll
    ```
-
 2. **配置环境变量**
-
    ```bash
    copy .env.example .env
    ```
-
    然后编辑 `.env` 文件，填入数据库连接信息。
-
 3. **安装后端依赖**
-
    ```bash
    pip install -r server/requirements.txt
    ```
-
 4. **启动后端服务**
-
    ```bash
    python server/app.py
    ```
-
    首次启动会自动构建前端并初始化数据库。
-
 5. **登录系统**
-
    - 默认账号：`admin`
    - 默认密码：`admin123`
-   - 访问地址：http://localhost:3001
+   - 访问地址：<http://localhost:3001>
 
 ### 生产环境部署
 
@@ -97,23 +86,23 @@ SERVE_FRONTEND=true
 FLASK_DEBUG=false
 ```
 
----
+***
 
 ## 技术栈
 
-| 层级 | 技术 |
-|------|------|
-| 前端 | React 18 + Ant Design 5 + ECharts 6 + Vite 5 |
-| 后端 | Flask 3 + PyMySQL + DBUtils + PyJWT |
-| 数据库 | MySQL 5.7+（推荐 8.0+） |
+| 层级  | 技术                                           |
+| --- | -------------------------------------------- |
+| 前端  | React 18 + Ant Design 5 + ECharts 6 + Vite 5 |
+| 后端  | Flask 3 + PyMySQL + DBUtils + PyJWT          |
+| 数据库 | MySQL 5.7+（推荐 8.0+）                          |
 
----
+***
 
 ## 许可证
 
 本项目基于 [Apache License 2.0](LICENSE) 开源。
 
----
+***
 
 ## 贡献指南
 
@@ -121,13 +110,14 @@ FLASK_DEBUG=false
 
 所有 Pull Request 需经项目维护者审查后才能合并。维护者保留根据代码质量、架构一致性等因素自行决定是否合并的权利。
 
----
+***
 
 ## 作者
 
-- **你的名字** - *初始工作* - [你的GitHub](https://github.com/你的用户名)
+- **xiweiguang** - *AI development* - <https://github.com/xiweiguang/ThinkAll>
 
 ## 致谢
 
 - 感谢所有为本项目做出贡献的开发者
-- [其他致谢内容]
+- 感谢大家多提想法
+
