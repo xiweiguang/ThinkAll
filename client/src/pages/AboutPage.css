@@ -1,0 +1,42 @@
+.about-page {
+  padding: 24px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.about-card {
+  text-align: center;
+}
+
+.about-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.about-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.about-brand {
+  text-align: left;
+}
+
+.about-version {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.about-slogan {
+  padding: 0 16px;
+}
+
+.about-copyright {
+  text-align: center;
+}

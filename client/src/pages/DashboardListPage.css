@@ -1,0 +1,32 @@
+.dashboard-list-page {
+  padding: 24px;
+}
+.dashboard-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.dashboard-list-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1890ff;
+}
+.dashboard-card {
+  height: 100%;
+}
+.dashboard-card-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.dashboard-card-desc p {
+  margin-bottom: 8px;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+}
+.dashboard-card-meta {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+}

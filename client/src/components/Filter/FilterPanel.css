@@ -1,0 +1,71 @@
+.filter-panel {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f8fbff 0%, #f0f5ff 100%);
+  border-radius: 8px;
+  border: 1px solid #e8f0fe;
+}
+
+.filter-panel .filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.filter-panel .filter-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  padding: 8px 12px;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e8ecf1;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.filter-panel .filter-item:hover {
+  border-color: #91caff;
+  box-shadow: 0 1px 4px rgba(24, 144, 255, 0.08);
+}
+
+.filter-panel .filter-item-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.filter-panel .filter-number-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-panel .filter-number-range .ant-input-number {
+  width: 100%;
+}
+
+.filter-panel .filter-actions {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  margin-bottom: 0;
+  padding: 8px 0;
+}
+
+.filter-panel .filter-tags {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.filter-panel .filter-tags .clear-all-btn {
+  margin-left: 4px;
+}
+
+

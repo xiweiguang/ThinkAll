@@ -1,0 +1,94 @@
+.users-page {
+  padding: 0;
+}
+
+.users-page-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.users-page-card .ant-card-body {
+  padding: 20px 24px;
+}
+
+/* 搜索筛选区域 */
+.users-filter-row {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.users-search-input {
+  width: 260px;
+}
+
+.users-status-select {
+  width: 130px;
+}
+
+.users-dept-select {
+  width: 160px;
+}
+
+/* 表格样式 */
+.users-table {
+  margin-top: 4px;
+}
+
+.users-table .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+}
+
+.users-table .ant-table-tbody > tr:hover > td {
+  background-color: #f5f8ff;
+}
+
+/* Modal 表单样式 */
+.users-modal-form {
+  padding-top: 8px;
+}
+
+.users-modal-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.users-modal-form .ant-form-item:last-child {
+  margin-bottom: 0;
+}
+
+/* 分配角色区域 */
+.users-role-assign {
+  padding: 12px 0;
+  min-height: 80px;
+}
+
+.users-role-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.users-role-checkbox-group .ant-checkbox-wrapper {
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.users-role-checkbox-group .ant-checkbox-wrapper:hover {
+  background-color: #f5f8ff;
+}
+
+.users-role-empty {
+  text-align: center;
+  color: #999;
+  padding: 24px 0;
+  font-size: 14px;
+}
+
+/* 操作按钮间距调整 */
+.users-table .ant-space-item {
+  padding: 0 2px;
+}
+
+

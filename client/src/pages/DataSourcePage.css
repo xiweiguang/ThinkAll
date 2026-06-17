@@ -1,0 +1,57 @@
+.datasource-page {
+  padding: 0;
+}
+
+.datasource-page-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.datasource-page-card .ant-card-body {
+  padding: 20px 24px;
+}
+
+.datasource-filter-row {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.datasource-search-input {
+  width: 260px;
+}
+
+.datasource-type-select {
+  width: 150px;
+}
+
+.datasource-table {
+  margin-top: 4px;
+}
+
+.datasource-table .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+}
+
+.datasource-table .ant-table-tbody > tr:hover > td {
+  background-color: #f5f8ff;
+}
+
+.datasource-modal-form {
+  padding-top: 8px;
+}
+
+.datasource-modal-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.datasource-modal-form .ant-form-item:last-child {
+  margin-bottom: 0;
+}
+
+.datasource-table .ant-space-item {
+  padding: 0 2px;
+}
+
+

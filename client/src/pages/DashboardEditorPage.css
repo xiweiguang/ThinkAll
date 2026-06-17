@@ -1,0 +1,84 @@
+.dashboard-editor-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f0f2f5;
+}
+.dashboard-editor-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
+}
+.toolbar-left, .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dashboard-editor-canvas {
+  flex: 1;
+  padding: 16px;
+  overflow: auto;
+}
+.dashboard-editor-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+}
+.dashboard-chart-item {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.chart-drag-handle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+  cursor: move;
+  font-size: 12px;
+  color: #666;
+}
+.chart-remove-btn {
+  cursor: pointer;
+  color: #999;
+}
+.chart-remove-btn:hover {
+  color: #ff4d4f;
+}
+.chart-preview-area {
+  flex: 1;
+  background: #fff;
+}
+.linkage-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  margin-bottom: 8px;
+  background: #fafafa;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.chart-style-btn {
+  cursor: pointer;
+  color: #999;
+}
+.chart-style-btn:hover {
+  color: #1890ff;
+}
+.style-config .ant-collapse-header {
+  padding: 8px 0 !important;
+}
+.panel-design-config .ant-form-item {
+  margin-bottom: 16px;
+}

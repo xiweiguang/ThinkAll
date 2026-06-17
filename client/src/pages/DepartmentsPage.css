@@ -1,0 +1,134 @@
+.departments-page {
+  padding: 0;
+  height: 100%;
+}
+
+.departments-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.departments-page .page-header h3 {
+  margin: 0;
+}
+
+.departments-layout {
+  display: flex;
+  gap: 16px;
+  height: calc(100vh - 180px);
+  min-height: 500px;
+}
+
+.departments-tree-panel {
+  width: 30%;
+  min-width: 280px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.departments-tree-panel .ant-card-body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+}
+
+.departments-tree-panel .tree-search {
+  margin-bottom: 12px;
+}
+
+.departments-detail-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.departments-detail-panel .ant-card-body {
+  flex: 1;
+  overflow: auto;
+}
+
+.detail-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  color: #999;
+}
+
+.detail-empty .anticon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #d9d9d9;
+}
+
+.detail-content {
+  padding: 8px 0;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-header .detail-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.detail-info {
+  margin-bottom: 24px;
+}
+
+.detail-info .info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.detail-info .info-label {
+  width: 80px;
+  flex-shrink: 0;
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.detail-info .info-value {
+  flex: 1;
+  color: #262626;
+  font-size: 14px;
+}
+
+.department-tree .ant-tree-node-content-wrapper {
+  padding: 2px 4px;
+}
+
+.department-tree .ant-tree-node-content-wrapper:hover {
+  background-color: #f5f5f5;
+}
+
+.department-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+  background-color: #e6f4ff;
+}
+
+.permission-tree-modal .ant-modal-body {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+

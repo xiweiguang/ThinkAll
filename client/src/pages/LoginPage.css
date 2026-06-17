@@ -1,0 +1,123 @@
+.login-page {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-background-shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  background: #fff;
+}
+
+.login-shape-1 {
+  width: 400px;
+  height: 400px;
+  top: -100px;
+  right: -100px;
+}
+
+.login-shape-2 {
+  width: 300px;
+  height: 300px;
+  bottom: -80px;
+  left: -80px;
+}
+
+.login-card {
+  width: 420px;
+  padding: 40px 32px 24px;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-logo-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.login-title {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.85);
+  letter-spacing: 2px;
+}
+
+.login-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.login-copyright {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+  margin-top: 24px;
+}
+
+.login-button {
+  height: 44px;
+  font-size: 16px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+}
+
+.login-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+.login-button:active {
+  transform: translateY(0);
+}
+
+.login-card .ant-input-affix-wrapper {
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.login-card .ant-input-affix-wrapper:hover,
+.login-card .ant-input-affix-wrapper-focused {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.login-card .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.login-card .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+  border-color: #667eea;
+}
+
+

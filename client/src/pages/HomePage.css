@@ -1,0 +1,337 @@
+.home-page {
+  padding: 0 4px;
+  background: linear-gradient(180deg, #f0f5ff 0%, #ffffff 40%);
+}
+
+.home-search-input {
+  max-width: 400px;
+}
+
+.home-welcome {
+  margin-bottom: 28px;
+}
+
+.home-welcome-title {
+  background: linear-gradient(135deg, #1890ff, #722ed1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700 !important;
+}
+
+.home-welcome-subtitle {
+  color: #8c8c8c;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* 统计卡片 */
+.home-stats-row {
+  margin-bottom: 28px;
+}
+
+.home-stat-card {
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.home-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(24,144,255,0.18);
+}
+
+.home-stat-card.stat-green {
+  background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
+}
+
+.home-stat-card.stat-green:hover {
+  box-shadow: 0 8px 24px rgba(82,196,26,0.18);
+}
+
+.home-stat-card.stat-purple {
+  background: linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%);
+}
+
+.home-stat-card.stat-purple:hover {
+  box-shadow: 0 8px 24px rgba(114,46,209,0.18);
+}
+
+.home-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #fff;
+  background: linear-gradient(135deg, #1890ff, #36cfc9);
+  box-shadow: 0 4px 12px rgba(24,144,255,0.3);
+}
+
+.home-stat-icon.icon-green {
+  background: linear-gradient(135deg, #52c41a, #95de64);
+  box-shadow: 0 4px 12px rgba(82,196,26,0.3);
+}
+
+.home-stat-icon.icon-purple {
+  background: linear-gradient(135deg, #722ed1, #b37feb);
+  box-shadow: 0 4px 12px rgba(114,46,209,0.3);
+}
+
+.home-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #262626;
+  line-height: 1.2;
+}
+
+.home-stat-label {
+  font-size: 13px;
+  color: #8c8c8c;
+  margin-top: 2px;
+}
+
+/* 搜索框美化 */
+.home-search-input .ant-input-affix-wrapper {
+  border-radius: 10px;
+  border: 1.5px solid #e8e8e8;
+  box-shadow: none;
+  transition: all 0.3s ease;
+}
+
+.home-search-input .ant-input-affix-wrapper:focus,
+.home-search-input .ant-input-affix-wrapper-focused {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 3px rgba(24,144,255,0.12);
+}
+
+/* 图表卡片 */
+.home-page .home-chart-card {
+  border-radius: 12px;
+  border: 1px solid rgba(24,144,255,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.home-page .home-chart-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1890ff, #36cfc9);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.home-page .home-chart-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 36px rgba(24,144,255,0.14);
+  border-color: rgba(24,144,255,0.2);
+}
+
+.home-page .home-chart-card:hover::before {
+  opacity: 1;
+}
+
+.home-chart-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 12px rgba(24,144,255,0.25);
+}
+
+.home-chart-type-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  background: rgba(24,144,255,0.08);
+  color: #1890ff;
+  margin-top: 6px;
+}
+
+/* 分类卡片 */
+.home-category-card {
+  border-radius: 12px;
+  border: 1px solid rgba(24, 144, 255, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.home-category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(24, 144, 255, 0.15);
+  border-color: rgba(24, 144, 255, 0.3);
+}
+
+.home-category-card-expanded {
+  border-color: rgba(24, 144, 255, 0.25);
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.1);
+}
+
+.home-category-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-category-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.home-category-icon.icon-yellow {
+  background: linear-gradient(135deg, #faad14 0%, #ffd666 100%);
+}
+
+.home-category-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-category-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #262626;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-category-count {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 2px;
+}
+
+.home-category-expand-icon {
+  color: #bfbfbf;
+  font-size: 12px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.home-category-card:hover .home-category-expand-icon {
+  color: #1890ff;
+}
+
+.home-category-card-content {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* 子分类列表 */
+.home-category-sub-list {
+  margin-bottom: 12px;
+}
+
+.home-category-sub-item {
+  margin-bottom: 8px;
+}
+
+.home-category-sub-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.home-category-sub-header:hover {
+  background: rgba(24, 144, 255, 0.06);
+}
+
+.home-category-sub-arrow {
+  font-size: 10px;
+  color: #8c8c8c;
+  width: 14px;
+  text-align: center;
+}
+
+.home-category-sub-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #595959;
+  flex: 1;
+}
+
+.home-category-sub-count {
+  font-size: 11px;
+  color: #bfbfbf;
+}
+
+.home-category-sub-charts {
+  margin-top: 8px;
+  padding-left: 20px;
+}
+
+.home-category-chart-list {
+  margin-top: 4px;
+}
+
+/* 图表列表样式 */
+.home-chart-list {
+  margin-top: 8px;
+}
+
+.home-chart-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 2px;
+}
+
+.home-chart-list-item:hover {
+  background: rgba(24, 144, 255, 0.06);
+}
+
+.home-chart-list-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.home-chart-list-name {
+  font-size: 14px;
+  color: #262626;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+

@@ -1,0 +1,110 @@
+.dashboard-view-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f0f2f5;
+}
+.dashboard-view-page.fullscreen {
+  background: #001529;
+}
+.dashboard-view-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
+}
+.dashboard-view-toolbar .toolbar-left,
+.dashboard-view-toolbar .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dashboard-view-fullscreen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: rgba(0, 21, 41, 0.8);
+  color: #fff;
+  flex-shrink: 0;
+}
+.dashboard-view-fullscreen-header h2 {
+  color: #fff;
+  margin: 0;
+}
+.dashboard-view-content {
+  flex: 1;
+  padding: 16px;
+  overflow: auto;
+}
+.dashboard-view-chart {
+  /* background: #fff; 已移除，允许透明底色 */
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.fullscreen .dashboard-view-chart {
+  /* 全屏模式下不再强制设置 background 和 border，尊重用户配置 */
+}
+.view-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+.view-chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+.fullscreen .view-chart-title {
+  color: #fff;
+}
+.view-chart-filter {
+  font-size: 12px;
+  color: #1890ff;
+  background: #e6f7ff;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.view-chart-content {
+  flex: 1;
+  min-height: 0;
+}
+.dashboard-view-filters {
+  background: #fff;
+  border-radius: 6px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  margin-bottom: 12px;
+}
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-label {
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+}
+.fullscreen .dashboard-view-filters {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.fullscreen .filter-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+/* 自由布局缩放 - 消费 --free-scale CSS 变量 */
+.dashboard-view-free-layout {
+  transform: scale(var(--free-scale, 1));
+  transform-origin: top left;
+  width: var(--free-width, 1920px);
+}

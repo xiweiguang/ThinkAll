@@ -1,0 +1,19 @@
+/* 全局响应式样式 */
+
+/* 基础断点变量（CSS自定义属性） */
+:root {
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+}
+
+/* 全局表格横向滚动样式 */
+.ant-table-wrapper {
+  overflow-x: auto;
+}
+
+.ant-table-wrapper .ant-table-content {
+  overflow-x: auto !important;
+}

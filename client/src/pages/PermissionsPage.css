@@ -1,0 +1,46 @@
+.permissions-page {
+  padding: 0;
+}
+
+.permissions-page .ant-typography {
+  margin-bottom: 16px;
+}
+
+.permissions-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.permissions-toolbar .ant-space {
+  flex-wrap: wrap;
+}
+
+.permissions-search-input {
+  width: 220px;
+}
+
+.permissions-type-select {
+  width: 140px;
+}
+
+.permissions-page .ant-table-wrapper {
+  margin-top: 8px;
+}
+
+.permissions-page .ant-btn-link {
+  padding: 0 4px;
+}
+
+.permissions-page .ant-modal-body {
+  padding: 24px;
+}
+
+.permissions-page .ant-form-vertical .ant-form-item {
+  margin-bottom: 16px;
+}
+
+

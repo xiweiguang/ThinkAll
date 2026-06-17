@@ -1,0 +1,189 @@
+.chart-designer-page {
+  padding: 0;
+}
+
+.chart-designer-page-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.chart-designer-page-card .ant-card-body {
+  padding: 20px 24px;
+}
+
+.chart-filter-row {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.chart-search-input {
+  width: 260px;
+}
+
+.chart-table {
+  margin-top: 4px;
+}
+
+.chart-table .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+}
+
+.chart-table .ant-table-tbody > tr:hover > td {
+  background-color: #f5f8ff;
+}
+
+.chart-table .ant-space-item {
+  padding: 0 2px;
+}
+
+.chart-wizard {
+  padding: 0;
+}
+
+.chart-wizard-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.chart-wizard-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.chart-wizard-steps {
+  margin-bottom: 24px;
+  padding: 16px 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.chart-wizard-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.chart-wizard-card .ant-card-body {
+  padding: 24px;
+}
+
+.chart-step-content {
+  min-height: 300px;
+}
+
+.chart-preview-table {
+  margin-top: 8px;
+}
+
+.chart-type-selector {
+  margin-bottom: 16px;
+}
+
+.chart-type-label {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #1a1a1a;
+}
+
+.chart-type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  border: 2px solid #f0f0f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.chart-type-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.chart-type-card.active {
+  border-color: #1890ff;
+  background: #e6f7ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.25);
+}
+
+.chart-type-icon {
+  font-size: 28px;
+  color: #1890ff;
+  margin-bottom: 8px;
+}
+
+.chart-type-card.active .chart-type-icon {
+  color: #096dd9;
+}
+
+.chart-type-name {
+  font-size: 13px;
+  color: #595959;
+}
+
+.chart-type-card.active .chart-type-name {
+  color: #096dd9;
+  font-weight: 600;
+}
+
+.chart-preview-area {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fafafa;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-preview-area .table-row-odd {
+  background-color: #ffffff;
+}
+
+.chart-preview-area .table-row-even {
+  background-color: #fafafa;
+}
+
+.chart-wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.chart-wizard-actions-right {
+  display: flex;
+  gap: 8px;
+}
+
+/* 图表描述区域标题样式 */
+.chart-desc-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1890ff;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-desc-section-title .anticon {
+  color: #1890ff;
+  font-size: 15px;
+}
+
+

@@ -55,7 +55,7 @@
 
 1. **克隆仓库**
    ```bash
-   git clone https://github.com/你的用户名/ThinkAll.git
+   git clone https://github.com/xiweiguang/ThinkAll.git
    cd ThinkAll
    ```
 2. **配置环境变量**

@@ -1,0 +1,139 @@
+.log-viewer-page {
+  padding: 0;
+}
+
+.log-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.log-viewer-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.log-viewer-subtitle {
+  color: #999;
+  font-size: 13px;
+}
+
+.log-viewer-stats {
+  display: flex;
+  gap: 32px;
+}
+
+.log-viewer-stats .ant-statistic {
+  text-align: center;
+}
+
+.log-viewer-stats .ant-statistic-title {
+  font-size: 12px;
+  color: #999;
+}
+
+.log-viewer-stats .ant-statistic-content {
+  font-size: 20px;
+}
+
+.log-viewer-card {
+  border-radius: 8px;
+}
+
+.log-viewer-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.log-viewer-label {
+  color: #666;
+  font-size: 14px;
+}
+
+.log-viewer-limit-info {
+  color: #999;
+  font-size: 13px;
+}
+
+.log-viewer-list {
+  margin-top: 8px;
+}
+
+.log-viewer-item {
+  padding: 12px 16px !important;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  transition: background-color 0.2s;
+}
+
+.log-viewer-item:hover {
+  background-color: #fafafa;
+}
+
+.log-viewer-item-error {
+  border-left: 3px solid #ff4d4f;
+}
+
+.log-viewer-item-critical {
+  border-left: 3px solid #eb2f96;
+}
+
+.log-viewer-item-content {
+  width: 100%;
+}
+
+.log-viewer-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.log-viewer-module-tag {
+  font-size: 12px;
+}
+
+.log-viewer-timestamp {
+  font-size: 12px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.log-viewer-message {
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: break-all;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background-color: #fafafa;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.log-viewer-message-error {
+  color: #ff4d4f;
+  background-color: #fff1f0;
+}
+
+.log-viewer-message-critical {
+  color: #eb2f96;
+  background-color: #fff0f6;
+}
+
+.log-viewer-page .ant-list-item {
+  border-block-end: 1px solid #f5f5f5 !important;
+}
+
+.log-viewer-page .ant-pagination {
+  margin-top: 16px;
+}
+
+

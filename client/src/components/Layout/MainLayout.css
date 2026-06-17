@@ -1,0 +1,482 @@
+/* 全局布局背景 */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #f0f2f5;
+}
+
+.main-layout {
+  min-height: 100vh;
+  min-width: 1400px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #f0f2f5;
+}
+
+/* 侧边栏样式 */
+.main-sider {
+    overflow: visible !important; /* 允许侧边栏随页面滚动 */
+    min-height: 100vh; /* 最小高度布满屏幕 */
+    background: linear-gradient(180deg, #0a1628, #001529) !important;
+}
+
+/* 确保 Ant Design Sider 内部容器不限制溢出 */
+.main-sider .ant-layout-sider-children {
+    overflow: visible !important;
+    min-height: 100vh; /* 内部容器也布满屏幕 */
+}
+
+/* 侧边栏 Logo */
+.main-sider .logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  gap: 8px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* 侧边栏底部 */
+.sider-footer {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.sider-footer-slogan {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.sider-footer-info {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 10px;
+}
+
+/* 侧边栏菜单项过渡效果 */
+.main-sider .ant-menu-item {
+  transition: all 0.3s;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 侧边栏菜单项悬停效果 */
+.main-sider .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.main-sider .ant-menu-item:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #1890ff;
+  border-radius: 0 2px 2px 0;
+}
+
+/* 侧边栏菜单项选中效果 */
+.main-sider .ant-menu-item-selected {
+  background: rgba(24, 144, 255, 0.15) !important;
+  position: relative;
+}
+
+.main-sider .ant-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #1890ff;
+  border-radius: 0 2px 2px 0;
+}
+
+/* 侧边栏子菜单标题悬停效果 */
+.main-sider .ant-menu-submenu-title {
+  transition: all 0.3s;
+  position: relative;
+}
+
+.main-sider .ant-menu-submenu-title:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.main-sider .ant-menu-submenu-title:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #1890ff;
+  border-radius: 0 2px 2px 0;
+}
+
+/* 头部样式 */
+.main-header {
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* 头部底部渐变线 */
+.main-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #1890ff, #36cfc9);
+}
+
+/* 折叠按钮悬停效果 */
+.trigger-btn {
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 12px;
+  transition: color 0.3s;
+}
+
+.trigger-btn:hover {
+  color: #1890ff;
+}
+
+.hamburger-btn {
+  font-size: 20px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.user-info:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.username {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* 内容区样式 */
+.main-content {
+  margin: 16px;
+  padding: 24px;
+  min-width: 900px;
+  background: #fff;
+  /* 禁止内容区文字选中，防止点击后出现光标闪动 */
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+.main-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+}
+
+.footer-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.footer-right {
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+}
+
+/* 移动端抽屉式侧边栏样式 */
+.mobile-sider-drawer .ant-drawer-body {
+  padding: 0;
+  background: linear-gradient(180deg, #0a1628, #001529);
+}
+
+.mobile-sider-drawer .ant-drawer-content {
+  background: linear-gradient(180deg, #0a1628, #001529);
+}
+
+.mobile-sider-drawer .logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  gap: 8px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 移动端抽屉菜单项悬停效果 */
+.mobile-sider-drawer .ant-menu-item {
+  transition: all 0.3s;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mobile-sider-drawer .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.mobile-sider-drawer .ant-menu-item:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #1890ff;
+  border-radius: 0 2px 2px 0;
+}
+
+.mobile-sider-drawer .ant-menu-item-selected {
+  background: rgba(24, 144, 255, 0.15) !important;
+  position: relative;
+}
+
+.mobile-sider-drawer .ant-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #1890ff;
+  border-radius: 0 2px 2px 0;
+}
+
+.mobile-sider-drawer .ant-menu-submenu-title {
+  transition: all 0.3s;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mobile-sider-drawer .ant-menu-submenu-title:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.mobile-sider-drawer .ant-menu-submenu-title:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #1890ff;
+  border-radius: 0 2px 2px 0;
+}
+
+/* 防止菜单项文本被选中 */
+.main-sider .ant-menu-item span,
+.main-sider .ant-menu-submenu-title span,
+.mobile-sider-drawer .ant-menu-item span,
+.mobile-sider-drawer .ant-menu-submenu-title span {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+
+
+/* Chrome风格标签页栏 */
+.chrome-tabs-bar {
+  display: flex;
+  align-items: center;
+  background: #e8f0fe;
+  padding: 4px 8px;
+  border-bottom: 1px solid #b8d4f0;
+  flex-shrink: 0;
+  min-height: 40px;
+  margin: 0;
+}
+
+.chrome-tabs-list {
+  display: flex;
+  gap: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  flex: 1;
+  /* 隐藏滚动条但保留滚动功能 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.chrome-tabs-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Chrome风格标签页 */
+.chrome-tab {
+  position: relative;
+  padding: 8px 16px;
+  border-radius: 8px 8px 0 0;
+  background: #d6e6f9;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 1px;
+  min-width: 100px;
+  max-width: 200px;
+  font-size: 13px;
+  transition: background 0.15s;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+.chrome-tab:hover {
+  background: #c8ddf5;
+}
+
+/* 选中标签样式 */
+.chrome-tab.active {
+  background: #fff;
+  color: #333;
+  font-weight: 500;
+  z-index: 1;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 标签页标题文字 */
+.chrome-tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Chrome风格关闭按钮 */
+.chrome-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 12px;
+  color: #888;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.chrome-tab-close:hover {
+  background: #e81123;
+  color: #fff;
+}
+
+/* 未选中标签的关闭按钮默认隐藏 */
+.chrome-tab:not(.active) .chrome-tab-close {
+  opacity: 0;
+}
+
+/* hover标签时显示关闭按钮 */
+.chrome-tab:hover .chrome-tab-close {
+  opacity: 1;
+}
+
+/* 全屏模式下的Chrome风格标签页栏 */
+.chrome-tabs-bar-fullscreen {
+  display: flex;
+  align-items: flex-end;
+  background: #e8f0fe;
+  padding: 8px 8px 0;
+  border-bottom: 1px solid #b8d4f0;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.chrome-tabs-bar-fullscreen .chrome-tabs-list {
+  display: flex;
+  gap: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  flex: 1;
+  padding: 0 24px;
+}
+
+/* ===== 内容区文字选中控制 ===== */
+
+/* 表格单元格内容允许复制选中 */
+.main-content .ant-table-tbody > tr > td,
+.main-content .ant-table-tbody > tr > td * {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* 输入框和文本域保持默认行为 */
+.main-content input,
+.main-content textarea,
+.main-content [contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+/* 代码块允许选中 */
+.main-content pre,
+.main-content code {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+

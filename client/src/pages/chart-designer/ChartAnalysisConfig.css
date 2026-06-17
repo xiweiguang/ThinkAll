@@ -1,0 +1,187 @@
+/* 总结配置 V3 样式 - 简单文本 + 字段按钮模式 */
+
+.analysis-config-v3 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 模板编辑区 */
+.analysis-template-area {
+  flex: 1;
+}
+
+.analysis-template-label {
+  font-weight: 500;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+/* 字段按钮区 */
+.analysis-field-buttons {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.analysis-field-buttons-label {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  line-height: 28px;
+}
+
+.analysis-field-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.analysis-field-btns .ant-btn {
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+/* 预览区 */
+.analysis-template-preview {
+  padding: 6px 10px;
+  background: #f9f9f9;
+  border: 1px dashed #e8e8e8;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.analysis-preview-label {
+  color: #999;
+  margin-right: 4px;
+}
+
+.analysis-preview-text {
+  color: #333;
+}
+
+/* 引用列表区 */
+.analysis-refs-area {
+  flex: 1;
+}
+
+.analysis-refs-label {
+  font-weight: 500;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.analysis-refs-list-v3 {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* 引用卡片 */
+.analysis-ref-card {
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  overflow: visible;
+  transition: border-color 0.2s;
+}
+
+.analysis-ref-card:hover {
+  border-color: #91d5ff;
+}
+
+.analysis-ref-card-header {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  cursor: pointer;
+  background: #fafafa;
+  gap: 4px;
+}
+
+.analysis-ref-card-header:hover {
+  background: #f0f0f0;
+}
+
+.analysis-ref-card-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1890ff;
+}
+
+.analysis-ref-card-id {
+  font-size: 11px;
+  color: #bbb;
+  font-family: monospace;
+}
+
+/* 引用配置面板 */
+.ref-config-panel {
+  padding: 8px 10px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+}
+
+.ref-config-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.ref-config-row:last-child {
+  margin-bottom: 0;
+}
+
+.ref-config-label {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+.ref-config-hint {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+  line-height: 1.6;
+  word-break: break-all;
+  white-space: normal;
+}
+
+.ref-config-hint code {
+  background: #f0f0f0;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 11px;
+  color: #1890ff;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .analysis-config-v3 {
+    flex-direction: column;
+  }
+}
+
+/* ReactQuill 编辑器样式覆盖 */
+.analysis-template-area .ql-container {
+  min-height: 120px;
+  max-height: 250px;
+  overflow-y: auto;
+  font-size: 14px;
+  border-radius: 0 0 4px 4px;
+}
+
+.analysis-template-area .ql-editor {
+  min-height: 120px;
+}
+
+.analysis-template-area .ql-toolbar {
+  border-radius: 4px 4px 0 0;
+}

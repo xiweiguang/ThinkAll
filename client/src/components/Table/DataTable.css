@@ -1,0 +1,93 @@
+.data-table-wrapper {
+  width: 100%;
+}
+
+.data-table-wrapper .ant-table {
+  font-size: 14px;
+}
+
+.data-table-wrapper .ant-table-thead > tr > th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data-table-wrapper .ant-table-tbody > tr > td {
+  word-break: break-word;
+}
+
+.data-table-wrapper .cell-number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table-wrapper .cell-date {
+  white-space: nowrap;
+}
+
+.data-table-wrapper .ant-table-pagination {
+  margin: 16px 0;
+}
+
+
+
+/* ====== 通过 styleConfig 应用的动态样式 ====== */
+
+/* 表头样式：默认渐变背景（当 onHeaderCell 未设置背景色时生效） */
+/* 使用 .ant-table-container 增加选择器优先级，确保覆盖 Ant Design 默认样式 */
+/* 注意：表头的具体样式（字号、颜色、加粗、倾斜等）由 onHeaderCell 回调设置，优先级高于此 CSS */
+.data-table-wrapper .ant-table-container .ant-table-thead > tr > th {
+  background-color: var(--header-bg, #f0f5ff);
+  background-image: var(--header-bg-image, linear-gradient(180deg, #f0f5ff 0%, #e6f7ff 100%));
+  color: var(--header-color, #262626);
+  font-size: var(--header-size);
+  font-weight: var(--header-weight, 600);
+}
+
+/* 单元格样式：默认背景色和字体颜色（当 onCell 未设置时生效） */
+.data-table-wrapper .ant-table-tbody > tr > td {
+  background: var(--cell-bg);
+  color: var(--cell-color);
+}
+
+/* 隔行变色：奇数行和偶数行背景色（CSS 方式，作为 onCell 方式的降级方案） */
+.table-stripe .ant-table-tbody > tr:nth-child(odd) {
+  background: var(--odd-row-bg);
+}
+.table-stripe .ant-table-tbody > tr:nth-child(even) {
+  background: var(--even-row-bg);
+}
+
+/* 边框控制：外边框、边框颜色、边框样式 */
+.data-table-wrapper .ant-table {
+  border: var(--outer-border, 1px solid #e8e8e8);
+  border-color: var(--border-color);
+  border-style: var(--border-style);
+}
+
+/* 内边框宽度、颜色、样式：通过 CSS 变量控制 */
+.data-table-wrapper .ant-table-container .ant-table-thead > tr > th,
+.data-table-wrapper .ant-table-container .ant-table-tbody > tr > td {
+  border-width: var(--inner-border-width, 1px);
+  border-color: var(--inner-border-color, #f0f0f0);
+  border-style: var(--inner-border-style, solid);
+}
+
+/* ====== 合并单元格 hover 修复 ====== */
+/* 合并列背景色 - 通过 CSS 变量设置，可被 hover 覆盖 */
+.data-table-wrapper .ant-table-tbody > tr > td[style*="--merge-bg-color"] {
+  background-color: var(--merge-bg-color, transparent);
+}
+
+/* 合并单元格 hover - 使用 !important 覆盖内联样式 */
+.data-table-wrapper[data-has-merge="true"] .ant-table-tbody > tr:hover > td {
+  background-color: rgba(5, 20, 56, 0.04) !important;
+}
+
+.data-table-wrapper[data-has-merge="true"] .ant-table-tbody > tr > td:hover {
+  background-color: rgba(5, 20, 56, 0.08) !important;
+}
+
+/* 合并单元格跨行 hover - 当鼠标悬停在某行时，跨越该行的合并单元格也变色 */
+.data-table-wrapper .merge-cell-hover {
+  background-color: rgba(5, 20, 56, 0.04) !important;
+}

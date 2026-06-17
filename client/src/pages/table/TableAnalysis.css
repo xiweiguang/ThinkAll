@@ -1,0 +1,47 @@
+/* 分析说明展示组件样式 */
+
+/* 分组统计项：flex 布局，组标签在左，数值在右 */
+.analysis-group-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+  gap: 12px;
+}
+
+.analysis-group-item-label {
+  color: #595959;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.analysis-group-item-value {
+  color: #1890ff;
+  font-weight: 600;
+  font-size: 13px;
+  text-align: right;
+}
+
+/* 分组统计容器 */
+.analysis-group-list {
+  margin: 4px 0;
+  padding: 6px 10px;
+  background: rgba(24, 144, 255, 0.02);
+  border-radius: 4px;
+  border: 1px solid rgba(24, 144, 255, 0.06);
+}
+
+/* 引用标签展示样式（与编辑器中一致） */
+.chart-desc-box-text .analysis-ref {
+  display: inline-block;
+  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+  color: #0050b3;
+  border: 1px solid #91d5ff;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+  white-space: nowrap;
+  vertical-align: baseline;
+}

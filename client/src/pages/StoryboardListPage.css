@@ -1,0 +1,32 @@
+.storyboard-list-page {
+  padding: 24px;
+}
+.storyboard-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.storyboard-list-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1890ff;
+}
+.storyboard-card {
+  height: 100%;
+}
+.storyboard-card-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.storyboard-card-desc p {
+  margin-bottom: 8px;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+}
+.storyboard-card-meta {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+}
