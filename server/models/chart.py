@@ -7,6 +7,21 @@ def find_all():
     return query('SELECT * FROM sys_charts WHERE status = 1 ORDER BY sort_order, id')
 
 
+def update_sort_order(chart_id_pk, sort_order):
+    """更新图表排序值"""
+    query('UPDATE sys_charts SET sort_order = %s WHERE id = %s', (sort_order, chart_id_pk))
+    return True
+
+
+def update_sort_order_by_chart_id(chart_id, sort_order):
+    """根据 chart_id 更新图表排序值"""
+    chart = find_by_chart_id(chart_id)
+    if not chart:
+        return False
+    query('UPDATE sys_charts SET sort_order = %s WHERE id = %s', (sort_order, chart['id']))
+    return True
+
+
 def find_by_id(chart_id_pk):
     """根据主键ID查询图表"""
     rows = query('SELECT * FROM sys_charts WHERE id = %s', (chart_id_pk,))
@@ -122,6 +137,8 @@ def _build_chart_config(chart):
         'icon': chart.get('icon', 'BarChartOutlined'),
         'description': chart.get('description', ''),
         'dataPermission': bool(chart.get('data_permission', 0)),
+        'sortOrder': chart.get('sort_order', 0),
+        'pkId': chart['id'],
         'matchField': chart.get('match_field'),
         'departmentField': chart.get('department_field'),
         'isDynamic': True,

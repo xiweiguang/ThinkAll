@@ -1,7 +1,7 @@
 from flask import Blueprint, request, g
 from middleware.auth import login_required
 from middleware.permission import permission_required
-from models.chart import find_all, find_by_id, find_by_chart_id, create, update, delete
+from models.chart import find_all, find_by_id, find_by_chart_id, create, update, delete, update_sort_order, update_sort_order_by_chart_id
 from models.data_source import execute_query, get_tables, get_table_columns, get_sql_columns
 from utils.response import success, error
 from utils.logger import app_logger
@@ -21,6 +21,29 @@ def list_charts():
     """获取所有图表配置列表"""
     data = find_all()
     return success(data)
+
+
+@chart_bp.route('/sort', methods=['PUT'])
+@login_required
+@permission_required('system:chart-designer:update')
+def update_sort_order_route():
+    """批量更新图表排序"""
+    data = request.get_json() or {}
+    items = data.get('items', [])
+    if not items:
+        return error('排序数据不能为空', 400)
+    for item in items:
+        chart_id = item.get('chart_id') or item.get('id')
+        sort_order = item.get('sort_order', 0)
+        if not chart_id:
+            return error('缺少图表标识', 400)
+        try:
+            sort_order = int(sort_order)
+        except (ValueError, TypeError):
+            return error('无效的排序值', 400)
+        if not update_sort_order_by_chart_id(chart_id, sort_order):
+            return error(f'图表不存在: {chart_id}', 404)
+    return success(None, '排序更新成功')
 
 
 @chart_bp.route('/<int:chart_pk>', methods=['GET'])

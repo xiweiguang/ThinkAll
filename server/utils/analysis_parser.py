@@ -145,7 +145,18 @@ def _compute_v2_associated_stat(ref_config, rows):
     method = ref_config.get('method', 'max').lower()
     associated_field = ref_config.get('associatedField', '')
 
-    if not rows or not associated_field:
+    if not rows:
+        return '—'
+
+    # 字段值统计方式：直接返回统计字段本身的值（如日期），不返回关联字段
+    if method == 'field_value':
+        # 取第一行数据的统计字段值
+        result = rows[0].get(field)
+        if result is None:
+            return '—'
+        return str(result)
+
+    if not associated_field:
         return '—'
 
     # 提取数值

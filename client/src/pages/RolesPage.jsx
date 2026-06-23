@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿﻿﻿﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card, Button, Input, Space, Form, message, Empty, Statistic, Typography, Tag,
 } from 'antd';
@@ -10,7 +10,7 @@ import {
   getRoles, getRoleById, createRole, updateRole, deleteRole, assignPermissions
 } from '../services/roleService';
 import { getPermissions } from '../services/permissionService';
-import { getRoleChartPermissions, setRoleChartPermissions, getAllDataPermissionConfigs, setDataPermissionConfig } from '../services/chartPermissionService';
+import { getRoleChartPermissions, setRoleChartPermissions, getAllDataPermissionConfigs } from '../services/chartPermissionService';
 import { getCategories } from '../services/chartCategoryService';
 import { getTableConfig } from '../services/tableService';
 import { useAuth } from '../contexts/AuthContext';
@@ -301,7 +301,7 @@ export default function RolesPage() {
       const catData = catRes?.data || catRes || [];
       setChartCategories(Array.isArray(catData) ? catData : []);
       try {
-        const dpRes = await getAllDataPermissionConfigs();
+        const dpRes = await getAllDataPermissionConfigs(record.id);
         const dpData = dpRes.data || dpRes || {};
         setDataPermConfigs(dpData);
       } catch {
@@ -320,18 +320,19 @@ export default function RolesPage() {
     if (!chartPermRole) return;
     setChartPermSubmitting(true);
     try {
-      await setRoleChartPermissions(chartPermRole.id, chartCheckedKeys);
-      const savePromises = allCharts.map(chart => {
+      // 将数据权限配置转换为后端需要的格式
+      const dataPermConfigsForApi = {};
+      allCharts.forEach(chart => {
         const config = dataPermConfigs[chart.id];
         if (config) {
-          return setDataPermissionConfig(chart.id, {
-            dataPermission: config.enabled,
-            matchField: config.match_field
-          });
+          dataPermConfigsForApi[chart.id] = {
+            enabled: config.enabled,
+            match_field: config.match_field,
+            department_field: config.department_field
+          };
         }
-        return Promise.resolve();
       });
-      await Promise.all(savePromises);
+      await setRoleChartPermissions(chartPermRole.id, chartCheckedKeys, dataPermConfigsForApi);
       message.success('图表权限及数据权限设置成功');
       setChartPermModalVisible(false);
     } catch {

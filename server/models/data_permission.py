@@ -180,21 +180,51 @@ def _get_user_filter_type(user_id):
     }
 
 
-def get_data_permission_config(table_id):
+def get_data_permission_config(table_id, user_id=None):
     """查询图表的数据权限开关和匹配字段
 
-    从 sys_charts 表读取图表级别的数据权限配置。
-    数据权限是图表级别的全局设置，不按角色区分。
+    从 sys_chart_permissions 表读取当前用户角色对应的数据权限配置。
+    如果用户有多个角色，任一角色开启数据权限则生效（取最严格配置）。
     """
+    if user_id:
+        # 获取用户所有角色
+        roles = query("SELECT role_id FROM sys_user_roles WHERE user_id = %s", (user_id,))
+        role_ids = [r['role_id'] for r in roles]
+
+        if role_ids:
+            # 查询用户所有角色对该图表的数据权限配置
+            placeholders = ','.join(['%s'] * len(role_ids))
+            rows = query(
+                f'SELECT data_permission, match_field, department_field FROM sys_chart_permissions WHERE target_type = %s AND target_id IN ({placeholders}) AND table_id = %s',
+                ['role'] + role_ids + [table_id]
+            )
+            # 任一角色开启数据权限则生效
+            for row in rows:
+                if row.get('data_permission') == 1:
+                    return {
+                        'enabled': True,
+                        'match_field': row.get('match_field'),
+                        'department_field': row.get('department_field')
+                    }
+            # 所有角色都未开启数据权限
+            if rows:
+                return {
+                    'enabled': False,
+                    'match_field': None,
+                    'department_field': None
+                }
+
+    # 回退：从 sys_charts 表读取全局配置（兼容旧数据）
     from models.chart import find_by_chart_id
     chart = find_by_chart_id(table_id)
     if chart:
         return {
             'enabled': chart.get('data_permission') == 1,
-            'match_field': chart.get('match_field')
+            'match_field': chart.get('match_field'),
+            'department_field': chart.get('department_field')
         }
 
-    return {'enabled': False, 'match_field': None}
+    return {'enabled': False, 'match_field': None, 'department_field': None}
 
 
 def build_data_filter(user_id, table_id):
@@ -202,7 +232,7 @@ def build_data_filter(user_id, table_id):
 
     返回: (where_clause, params) 或 (None, None) 表示不过滤
     """
-    config = get_data_permission_config(table_id)
+    config = get_data_permission_config(table_id, user_id=user_id)
     if not config['enabled']:
         return None, None
 
@@ -216,7 +246,7 @@ def build_data_filter(user_id, table_id):
     if filter_info['type'] == 'all':
         return None, None
 
-    dept_field = get_department_field(table_id)
+    dept_field = config.get('department_field') or get_department_field(table_id)
 
     # 部门领导：查看所属部门及子部门数据
     if filter_info['type'] == 'department':
@@ -240,35 +270,51 @@ def build_data_filter(user_id, table_id):
     return f"`{match_field}` = %s", (filter_info['names'][0],)
 
 
-def set_data_permission_config(table_id, data_permission, match_field):
-    """设置图表的数据权限配置
+def set_data_permission_config(role_id, table_id, data_permission, match_field, department_field=None):
+    """设置角色的图表数据权限配置
 
-    更新 sys_charts 表中对应图表的 data_permission 和 match_field 字段。
-    数据权限是图表级别的全局设置，不按角色区分。
+    更新 sys_chart_permissions 表中对应角色和图表的 data_permission、match_field 和 department_field 字段。
+    数据权限按角色独立配置。
     """
-    sql = """
-        UPDATE sys_charts
-        SET data_permission = %s, match_field = %s
-        WHERE chart_id = %s
-    """
-    query(sql, (1 if data_permission else 0, match_field, table_id))
+    # 检查记录是否存在
+    existing = query(
+        'SELECT id FROM sys_chart_permissions WHERE target_type = %s AND target_id = %s AND table_id = %s',
+        ('role', role_id, table_id)
+    )
+    if existing:
+        query(
+            'UPDATE sys_chart_permissions SET data_permission = %s, match_field = %s, department_field = %s WHERE target_type = %s AND target_id = %s AND table_id = %s',
+            (1 if data_permission else 0, match_field, department_field, 'role', role_id, table_id)
+        )
+    else:
+        query(
+            'INSERT INTO sys_chart_permissions (target_type, target_id, table_id, data_permission, match_field, department_field) VALUES (%s, %s, %s, %s, %s, %s)',
+            ('role', role_id, table_id, 1 if data_permission else 0, match_field, department_field)
+        )
     return True
 
 
-def get_all_data_permission_configs():
-    """获取所有图表的数据权限配置（仅动态图表）
+def get_all_data_permission_configs(role_id=None):
+    """获取所有图表的数据权限配置
 
-    从 sys_charts 表批量读取，数据权限是图表级别的全局设置。
+    如果指定 role_id，从 sys_chart_permissions 表读取该角色的配置。
+    否则从 sys_charts 表读取全局配置（兼容旧数据）。
     """
-    from models.chart import get_all_chart_configs
-    dynamic_charts = get_all_chart_configs()
+    if role_id:
+        from models.chart_permission import get_role_all_data_perm_configs
+        return get_role_all_data_perm_configs(role_id)
+
+    # 回退：从 sys_charts 表读取全局配置
+    from models.chart import find_all
+    charts = find_all()
     configs = {}
-    for chart in dynamic_charts:
-        chart_id = chart.get('id')
+    for chart in charts:
+        chart_id = chart.get('chart_id')
         if chart_id:
             configs[chart_id] = {
                 'enabled': chart.get('data_permission') == 1,
-                'match_field': chart.get('match_field')
+                'match_field': chart.get('match_field'),
+                'department_field': chart.get('department_field')
             }
     return configs
 
@@ -281,7 +327,7 @@ def filter_rows_by_permission(rows, user_id, table_id, dept_field_override=None)
     if not rows:
         return rows
 
-    config = get_data_permission_config(table_id)
+    config = get_data_permission_config(table_id, user_id=user_id)
     if not config['enabled']:
         return rows
 
@@ -295,7 +341,7 @@ def filter_rows_by_permission(rows, user_id, table_id, dept_field_override=None)
     if filter_info['type'] == 'all':
         return rows
 
-    dept_field = dept_field_override or get_department_field(table_id)
+    dept_field = dept_field_override or config.get('department_field') or get_department_field(table_id)
 
     # 部门领导：查看所属部门及子部门数据
     if filter_info['type'] == 'department':

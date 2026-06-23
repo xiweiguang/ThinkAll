@@ -57,6 +57,7 @@ const ChartAnalysisConfig = ({
     { label: '计数', value: 'count' },
     { label: '最大', value: 'max' },
     { label: '最小', value: 'min' },
+    { label: '字段值', value: 'field_value' },
   ];
 
   const displayTypeOptions = [

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Card, Typography, Result, Spin, Table as AntTable, Dropdown, message, Button, Radio } from 'antd';
 import dayjs from 'dayjs';
 import { DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileExcelOutlined, FullscreenOutlined, FullscreenExitOutlined, InfoCircleOutlined } from '@ant-design/icons';
@@ -717,6 +717,11 @@ export default function TablePage({ chartId: chartIdProp, initialFilterParams: i
 
   useEffect(() => {
     const fetchConfig = async () => {
+      // 切换图表时先清空旧配置和数据，防止 useEffect([tableId, tableConfig]) 用旧配置加载数据
+      setTableConfig(null);
+      setDataSource([]);
+      setChartData([]);
+      setFilteredChartData([]);
       setConfigLoading(true);
       setConfigError(null);
       try {

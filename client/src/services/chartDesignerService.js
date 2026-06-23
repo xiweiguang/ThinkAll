@@ -18,4 +18,7 @@ export const getDsTables = (dsId) => api.get(`/charts/datasource/${dsId}/tables`
 
 export const getDsColumns = (dsId, tableName) => api.get(`/charts/datasource/${dsId}/tables/${tableName}/columns`);
 
-export const getSqlColumns = (dsId, sql) => api.post(`/charts/datasource/${dsId}/sql-columns`, { sql });
+export const getSqlColumns = (dsId, sql) => api.post('/charts/datasource/${dsId}/sql-columns', { sql });
+
+// 批量更新图表排序
+export const updateSortOrder = (items) => api.put('/charts/sort', { items });

@@ -11,3 +11,6 @@ export const updateCategory = (id, data) => api.put(`/chart-categories/${id}`, d
 
 // 删除分类
 export const deleteCategory = (id) => api.delete(`/chart-categories/${id}`);
+
+// 批量更新分类排序
+export const updateSortOrder = (items) => api.put('/chart-categories/sort', { items });
