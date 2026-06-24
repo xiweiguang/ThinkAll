@@ -59,20 +59,21 @@
    cd ThinkAll
    ```
 2. **配置环境变量**
+   需先在server文件夹下创建logs文件夹。
    ```bash
    copy .env.example .env
    ```
    然后编辑 `.env` 文件，填入数据库连接信息。
-3. **安装后端依赖**
+4. **安装后端依赖**
    ```bash
    pip install -r server/requirements.txt
    ```
-4. **启动后端服务**
+5. **启动后端服务**
    ```bash
    python server/app.py
    ```
    首次启动会自动构建前端并初始化数据库。
-5. **登录系统**
+6. **登录系统**
    - 默认账号：`admin`
    - 默认密码：`admin123`
    - 访问地址：<http://localhost:3001>
