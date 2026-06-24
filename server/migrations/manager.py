@@ -1,4 +1,4 @@
-"""数据库迁移管理器
+﻿"""数据库迁移管理器
 
 使用版本号管理数据库迁移，每次迁移记录已执行的版本号到 sys_migration_versions 表。
 """
@@ -42,7 +42,7 @@ def run_migrations(cursor):
     _ensure_migration_table(cursor)
 
     # 导入所有迁移模块
-    from migrations import migration_001, migration_002, migration_003, migration_004, migration_005, migration_006
+    from migrations import migration_001, migration_002, migration_003, migration_004, migration_005, migration_006, migration_007, migration_008
 
     migrations = [
         ('001', '初始权限和角色迁移', migration_001.up),
@@ -51,6 +51,8 @@ def run_migrations(cursor):
         ('004', '仪表板和故事板迁移', migration_004.up),
         ('005', '分析说明模板迁移', migration_005.up),
         ('006', '总结模块重构 - 添加analysis_config字段', migration_006.up),
+        ('007', '智能审批模块', migration_007.up),
+        ('008', 'sys_chart_permissions 添加 department_field 字段', migration_008.up),
     ]
 
     for version, description, migrate_func in migrations:
@@ -63,3 +65,4 @@ def run_migrations(cursor):
             except Exception as e:
                 print(f'[数据库迁移] 迁移 {version} 失败: {e}')
                 raise
+

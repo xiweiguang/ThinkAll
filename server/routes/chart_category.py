@@ -2,7 +2,7 @@
 from flask import Blueprint, request
 from middleware.auth import login_required
 from middleware.permission import permission_required
-from models.chart_category import get_all_categories, get_category_by_id, create_category, update_category, delete_category
+from models.chart_category import get_all_categories, get_category_by_id, create_category, update_category, delete_category, update_sort_order
 from utils.response import success, error
 
 chart_category_bp = Blueprint('chart_category', __name__, url_prefix='/api/chart-categories')
@@ -80,3 +80,22 @@ def delete_category_route(category_id):
         return error('分类不存在', 404)
     delete_category(category_id)
     return success(None, '分类删除成功')
+
+
+@chart_category_bp.route('/sort', methods=['PUT'])
+@login_required
+@permission_required('chart:category:update')
+def update_sort_order_route():
+    """批量更新分类排序"""
+    data = request.get_json() or {}
+    items = data.get('items', [])
+    if not items:
+        return error('排序数据不能为空', 400)
+    for item in items:
+        try:
+            category_id = int(item['id'])
+            sort_order = int(item['sort_order'])
+        except (ValueError, TypeError, KeyError):
+            return error(f'无效的排序数据', 400)
+        update_sort_order(category_id, sort_order)
+    return success(None, '排序更新成功')

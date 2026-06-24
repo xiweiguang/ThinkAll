@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Tree, Empty, Space, Transfer, Table, Switch, Tag, Alert, Button } from 'antd';
+import { Modal, Tree, Empty, Space, Transfer, Table, Switch, Tag, Alert, Button, Select } from 'antd';
 import {
   SafetyCertificateOutlined,
   BarChartOutlined,
@@ -126,14 +126,22 @@ function RolePermissionTransfer({
                   <Button size="small" onClick={() => {
                     const newConfigs = {};
                     allCharts.forEach(chart => {
-                      newConfigs[chart.id] = { enabled: true, match_field: dataPermConfigs[chart.id]?.match_field || chart.matchField || '' };
+                      newConfigs[chart.id] = {
+                        enabled: true,
+                        match_field: dataPermConfigs[chart.id]?.match_field || chart.matchField || '',
+                        department_field: dataPermConfigs[chart.id]?.department_field || chart.departmentField || ''
+                      };
                     });
                     onSetDataPermConfigs(newConfigs);
                   }}>全部开启</Button>
                   <Button size="small" onClick={() => {
                     const newConfigs = {};
                     allCharts.forEach(chart => {
-                      newConfigs[chart.id] = { enabled: false, match_field: dataPermConfigs[chart.id]?.match_field || chart.matchField || '' };
+                      newConfigs[chart.id] = {
+                        enabled: false,
+                        match_field: dataPermConfigs[chart.id]?.match_field || chart.matchField || '',
+                        department_field: dataPermConfigs[chart.id]?.department_field || chart.departmentField || ''
+                      };
                     });
                     onSetDataPermConfigs(newConfigs);
                   }}>全部关闭</Button>
@@ -202,7 +210,12 @@ function RolePermissionTransfer({
                         onChange={(checked) => {
                           onSetDataPermConfigs(prev => ({
                             ...prev,
-                            [record.id]: { ...prev[record.id], enabled: checked, match_field: prev[record.id]?.match_field || record.matchField || '' }
+                            [record.id]: {
+                              ...prev[record.id],
+                              enabled: checked,
+                              match_field: prev[record.id]?.match_field || record.matchField || '',
+                              department_field: prev[record.id]?.department_field || record.departmentField || ''
+                            }
                           }));
                         }}
                         checkedChildren="开"
@@ -213,13 +226,51 @@ function RolePermissionTransfer({
                   {
                     title: '匹配字段',
                     key: 'matchField',
+                    width: 200,
                     render: (_, record) => {
                       const config = dataPermConfigs[record.id] || {};
                       if (!config.enabled) return <span style={{ color: '#ccc' }}>-</span>;
+                      // 从图表字段配置中生成选项
+                      const fieldOptions = (record.fieldsConfig || []).map(f => ({
+                        label: f.label || f.name,
+                        value: f.name,
+                      }));
                       return (
                         <div style={{ fontSize: 12 }}>
-                          <div><span style={{ color: '#999' }}>姓名：</span><span style={{ color: '#1890ff' }}>{record.matchField || '-'}</span></div>
-                          <div><span style={{ color: '#999' }}>部门：</span><span style={{ color: '#1890ff' }}>{record.departmentField || '-'}</span></div>
+                          <div style={{ marginBottom: 4 }}>
+                            <span style={{ color: '#999' }}>姓名：</span>
+                            <Select
+                              size="small"
+                              placeholder="选择姓名字段"
+                              value={config.match_field || undefined}
+                              onChange={(value) => {
+                                onSetDataPermConfigs(prev => ({
+                                  ...prev,
+                                  [record.id]: { ...prev[record.id], match_field: value }
+                                }));
+                              }}
+                              allowClear
+                              options={fieldOptions}
+                              style={{ width: 120 }}
+                            />
+                          </div>
+                          <div>
+                            <span style={{ color: '#999' }}>部门：</span>
+                            <Select
+                              size="small"
+                              placeholder="选择部门字段"
+                              value={config.department_field || undefined}
+                              onChange={(value) => {
+                                onSetDataPermConfigs(prev => ({
+                                  ...prev,
+                                  [record.id]: { ...prev[record.id], department_field: value }
+                                }));
+                              }}
+                              allowClear
+                              options={fieldOptions}
+                              style={{ width: 120 }}
+                            />
+                          </div>
                         </div>
                       );
                     },

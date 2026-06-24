@@ -22,6 +22,10 @@ import {
   FundProjectionScreenOutlined,
   LayoutOutlined,
   PlayCircleOutlined,
+  AuditOutlined,
+  CheckCircleOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -29,6 +33,7 @@ import { getTableIcon } from '../../config/tables';
 import { getTableConfig } from '../../services/tableService';
 import { getUnreadCount } from '../../services/chatService';
 import * as chartCategoryService from '../../services/chartCategoryService';
+import * as chartDesignerService from '../../services/chartDesignerService';
 import ProfileModal from '../User/ProfileModal';
 import ChangePasswordModal from '../User/ChangePasswordModal';
 import { ChartTabProvider, useChartTab } from '../../contexts/ChartTabContext';
@@ -41,11 +46,11 @@ import './MainLayout.css';
 const { Content, Footer } = Layout;
 
 // 递归构建分类子菜单
-function buildCategoryMenuItems(categoryTree, tables, onCategoryAction, onEditAction, hasPermission) {
+function buildCategoryMenuItems(categoryTree, tables, onCategoryAction, onEditAction, hasPermission, onMoveCategory, onMoveTable) {
   const items = [];
   for (const cat of categoryTree) {
     const catTables = tables.filter(t => t.categoryId === cat.id);
-    const childMenus = buildCategoryMenuItems(cat.children || [], tables, onCategoryAction, onEditAction, hasPermission);
+    const childMenus = buildCategoryMenuItems(cat.children || [], tables, onCategoryAction, onEditAction, hasPermission, onMoveCategory, onMoveTable);
 
     const children = [];
     // 子分类菜单
@@ -59,6 +64,21 @@ function buildCategoryMenuItems(categoryTree, tables, onCategoryAction, onEditAc
         icon: React.createElement(getTableIcon(table.icon)),
         label: <Tooltip title={table.name} placement="right"><span style={{ display: 'inline-block', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>{table.name}</span></Tooltip>,
       });
+      // 上移/下移图表按钮需要 system:chart-designer:update 权限
+      if (hasPermission && hasPermission('system:chart-designer:update') && onMoveTable) {
+        children.push({
+          key: `table-move-up-${table.id}`,
+          icon: <ArrowUpOutlined />,
+          label: `上移:${table.name}`,
+          onClick: () => onMoveTable(table, 'up'),
+        });
+        children.push({
+          key: `table-move-down-${table.id}`,
+          icon: <ArrowDownOutlined />,
+          label: `下移:${table.name}`,
+          onClick: () => onMoveTable(table, 'down'),
+        });
+      }
     }
     // 编辑目录按钮需要 chart:category:update 权限
     if (hasPermission && hasPermission('chart:category:update') && onEditAction) {
@@ -76,6 +96,21 @@ function buildCategoryMenuItems(categoryTree, tables, onCategoryAction, onEditAc
         icon: <DeleteOutlined />,
         label: '删除目录',
         onClick: () => onCategoryAction && onCategoryAction(cat),
+      });
+    }
+    // 上移/下移目录按钮需要 chart:category:update 权限
+    if (hasPermission && hasPermission('chart:category:update') && onMoveCategory) {
+      children.push({
+        key: `cat-move-up-${cat.id}`,
+        icon: <ArrowUpOutlined />,
+        label: '上移目录',
+        onClick: () => onMoveCategory(cat, 'up'),
+      });
+      children.push({
+        key: `cat-move-down-${cat.id}`,
+        icon: <ArrowDownOutlined />,
+        label: '下移目录',
+        onClick: () => onMoveCategory(cat, 'down'),
       });
     }
 
@@ -291,6 +326,85 @@ function MainLayoutInner() {
     }
   };
 
+  // 处理目录上移/下移
+  const handleMoveCategory = async (category, direction) => {
+    try {
+      // 找到同级分类列表（同一父级下的分类）
+      const findSiblings = (cats, parentId) => {
+        if (parentId === null || parentId === undefined) {
+          return cats.filter(c => !c.parentId);
+        }
+        for (const cat of cats) {
+          if (cat.id === parentId) return cat.children || [];
+          if (cat.children) {
+            const found = findSiblings(cat.children, parentId);
+            if (found.length > 0) return found;
+          }
+        }
+        return [];
+      };
+      const siblings = findSiblings(categories, category.parentId);
+      const currentIndex = siblings.findIndex(c => c.id === category.id);
+      if (currentIndex === -1) return;
+
+      const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      if (targetIndex < 0 || targetIndex >= siblings.length) {
+        message.warning(direction === 'up' ? '已是第一个目录' : '已是最后一个目录');
+        return;
+      }
+
+      const targetCategory = siblings[targetIndex];
+      // 使用索引值作为 sort_order，确保排序有效
+      const items = [
+        { id: category.id, sort_order: targetIndex },
+        { id: targetCategory.id, sort_order: currentIndex },
+      ];
+      await chartCategoryService.updateSortOrder(items);
+      message.success('目录排序已更新');
+      // 刷新分类数据
+      const catRes = await chartCategoryService.getCategories();
+      if (catRes && catRes.code === 200) {
+        setCategories(catRes.data || []);
+      }
+    } catch {
+      message.error('目录排序失败');
+    }
+  };
+
+  // 处理图表上移/下移
+  const handleMoveTable = async (table, direction) => {
+    try {
+      // 找到同级图表列表（同一分类下的图表）
+      const siblings = visibleTables.filter(t =>
+        (t.categoryId || null) === (table.categoryId || null)
+      );
+      const currentIndex = siblings.findIndex(t => t.id === table.id);
+      if (currentIndex === -1) return;
+
+      const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      if (targetIndex < 0 || targetIndex >= siblings.length) {
+        message.warning(direction === 'up' ? '已是第一个图表' : '已是最后一个图表');
+        return;
+      }
+
+      const targetTable = siblings[targetIndex];
+      // 使用 chart_id（字符串标识）和索引值排序
+      const items = [
+        { chart_id: table.id, sort_order: targetIndex },
+        { chart_id: targetTable.id, sort_order: currentIndex },
+      ];
+      await chartDesignerService.updateSortOrder(items);
+      message.success('图表排序已更新');
+      // 刷新图表数据
+      const tableRes = await getTableConfig();
+      if (tableRes && tableRes.code === 200) {
+        setVisibleTables(tableRes.data || []);
+      }
+    } catch {
+      message.error('图表排序失败');
+    }
+  };
+
   const userMenuItems = [
     {
       key: 'profile',
@@ -358,7 +472,7 @@ function MainLayoutInner() {
 
     // 按分类构建子菜单
     if (categories.length > 0) {
-      const categoryMenus = buildCategoryMenuItems(categories, visibleTables, handleDeleteCategory, handleEditCategory, hasPermission);
+      const categoryMenus = buildCategoryMenuItems(categories, visibleTables, handleDeleteCategory, handleEditCategory, hasPermission, handleMoveCategory, handleMoveTable);
       tableChildren.push(...categoryMenus);
     }
 
@@ -370,6 +484,21 @@ function MainLayoutInner() {
         icon: React.createElement(getTableIcon(table.icon)),
         label: <Tooltip title={table.name} placement="right"><span style={{ display: 'inline-block', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>{table.name}</span></Tooltip>,
       });
+      // 上移/下移图表按钮需要 system:chart-designer:update 权限
+      if (hasPermission && hasPermission('system:chart-designer:update')) {
+        tableChildren.push({
+          key: `table-move-up-${table.id}`,
+          icon: <ArrowUpOutlined />,
+          label: `上移:${table.name}`,
+          onClick: () => handleMoveTable(table, 'up'),
+        });
+        tableChildren.push({
+          key: `table-move-down-${table.id}`,
+          icon: <ArrowDownOutlined />,
+          label: `下移:${table.name}`,
+          onClick: () => handleMoveTable(table, 'down'),
+        });
+      }
     }
 
     // 无分类时保持原有平铺逻辑
@@ -384,11 +513,28 @@ function MainLayoutInner() {
           onClick: () => setCategoryModalVisible(true),
         });
       }
-      noCatChildren.push(...visibleTables.map((table) => ({
-        key: `/table/${table.id}`,
-        icon: React.createElement(getTableIcon(table.icon)),
-        label: <Tooltip title={table.name} placement="right"><span style={{ display: 'inline-block', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>{table.name}</span></Tooltip>,
-      })));
+      for (const table of visibleTables) {
+        noCatChildren.push({
+          key: `/table/${table.id}`,
+          icon: React.createElement(getTableIcon(table.icon)),
+          label: <Tooltip title={table.name} placement="right"><span style={{ display: 'inline-block', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>{table.name}</span></Tooltip>,
+        });
+        // 上移/下移图表按钮需要 system:chart-designer:update 权限
+        if (hasPermission && hasPermission('system:chart-designer:update')) {
+          noCatChildren.push({
+            key: `table-move-up-${table.id}`,
+            icon: <ArrowUpOutlined />,
+            label: `上移:${table.name}`,
+            onClick: () => handleMoveTable(table, 'up'),
+          });
+          noCatChildren.push({
+            key: `table-move-down-${table.id}`,
+            icon: <ArrowDownOutlined />,
+            label: `下移:${table.name}`,
+            onClick: () => handleMoveTable(table, 'down'),
+          });
+        }
+      }
       menuItems.push({
         key: 'tables-menu',
         icon: <BarChartOutlined />,
@@ -423,6 +569,38 @@ function MainLayoutInner() {
           label: '故事板',
         },
       ],
+    });
+  }
+
+  // 智能审批（需要 approval 权限）
+  const approvalChildren = [];
+  if (hasPermission('approval:template')) {
+    approvalChildren.push({
+      key: '/approval/templates',
+      icon: <SettingOutlined />,
+      label: '审批管理',
+    });
+  }
+  if (hasPermission('approval:start')) {
+    approvalChildren.push({
+      key: '/approval/start',
+      icon: <EditOutlined />,
+      label: '发起审批',
+    });
+  }
+  if (hasPermission('approval:todo')) {
+    approvalChildren.push({
+      key: '/approval/todo',
+      icon: <CheckCircleOutlined />,
+      label: '我的审批',
+    });
+  }
+  if (approvalChildren.length > 0) {
+    menuItems.push({
+      key: 'approval-menu',
+      icon: <AuditOutlined />,
+      label: '智能审批',
+      children: approvalChildren,
     });
   }
 
@@ -526,10 +704,9 @@ function MainLayoutInner() {
       }
       return keys;
     }
-    // 系统管理子菜单路径自动展开
-    const systemPaths = ['/users', '/departments', '/roles', '/permissions', '/data-sources', '/chart-designer', '/log-viewer'];
-    if (systemPaths.some(p => path.startsWith(p))) {
-      return ['system-menu'];
+    // 智能审批子菜单路径自动展开
+    if (path.startsWith('/approval/')) {
+      return ['approval-menu'];
     }
     // 数据分析子菜单路径自动展开
     if (path.startsWith('/dashboard-list') || path.startsWith('/dashboard-editor') || path.startsWith('/dashboard-view') || path.startsWith('/storyboard-list') || path.startsWith('/storyboard-editor') || path.startsWith('/storyboard-play')) {
@@ -539,7 +716,7 @@ function MainLayoutInner() {
   };
 
   const handleMenuClick = ({ key }) => {
-    if (key === 'new-category' || /^cat-\d+$/.test(key) || key.startsWith('cat-action-') || key.startsWith('cat-edit-')) {
+    if (key === 'new-category' || /^cat-\d+$/.test(key) || key.startsWith('cat-action-') || key.startsWith('cat-edit-') || key.startsWith('cat-move-up-') || key.startsWith('cat-move-down-') || key.startsWith('table-move-up-') || key.startsWith('table-move-down-')) {
       if (isMobile) {
         setDrawerVisible(false);
       }
@@ -613,7 +790,7 @@ function MainLayoutInner() {
           )}
           <div ref={contentRef} style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto', padding: tabs.length > 0 ? '16px 0 0 0' : undefined, ...(isFullscreen ? { background: '#fff', height: '100vh' } : {}) }}>
             {activeTabId && tabs.find(t => t.tabId === activeTabId) ? (
-              <TablePage chartId={tabs.find(t => t.tabId === activeTabId).chartId} initialFilterParams={tabs.find(t => t.tabId === activeTabId).filterParams} />
+              <TablePage key={tabs.find(t => t.tabId === activeTabId).tabId} chartId={tabs.find(t => t.tabId === activeTabId).chartId} initialFilterParams={tabs.find(t => t.tabId === activeTabId).filterParams} />
             ) : (
               <Outlet />
             )}

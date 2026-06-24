@@ -1,8 +1,7 @@
 import os
-import shutil
 import logging
 from logging.handlers import TimedRotatingFileHandler
-from datetime import datetime
+from datetime import datetime, date
 
 LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -11,9 +10,7 @@ os.makedirs(LOG_DIR, exist_ok=True)
 def _log_namer(default_name):
     """自定义日志轮转命名：将 app.log.2026-06-09 重命名为 2026-06-09.log"""
     dir_name = os.path.dirname(default_name)
-    # default_name 格式为 "path/to/app.log.2026-06-09"
     base = os.path.basename(default_name)
-    # 提取日期部分（最后一个点号之后）
     parts = base.split('.')
     if len(parts) >= 3 and parts[0] == 'app' and parts[1] == 'log':
         date_part = parts[2]
@@ -21,10 +18,18 @@ def _log_namer(default_name):
     return default_name
 
 
-def _log_rotator(source, dest):
-    """自定义日志轮转：将源文件移动到目标文件"""
-    # dest 是 namer 返回的路径
-    shutil.move(source, dest)
+def _rotate_log_on_startup():
+    """启动时检查 app.log 是否需要轮转：如果最后修改日期不是今天，则重命名为 {日期}.log"""
+    log_file = os.path.join(LOG_DIR, 'app.log')
+    if not os.path.exists(log_file):
+        return
+    mtime = os.path.getmtime(log_file)
+    mtime_date = date.fromtimestamp(mtime)
+    today = date.today()
+    if mtime_date < today:
+        dest = os.path.join(LOG_DIR, f'{mtime_date.strftime("%Y-%m-%d")}.log')
+        if not os.path.exists(dest):
+            os.rename(log_file, dest)
 
 
 def get_logger(name='app'):
@@ -34,6 +39,9 @@ def get_logger(name='app'):
         return logger
 
     logger.setLevel(logging.DEBUG)
+
+    # 启动时检查是否需要轮转昨天的日志
+    _rotate_log_on_startup()
 
     # 使用固定文件名，轮转后由 namer 生成 {日期}.log
     log_file = os.path.join(LOG_DIR, 'app.log')
@@ -47,7 +55,6 @@ def get_logger(name='app'):
     )
     file_handler.suffix = '%Y-%m-%d'
     file_handler.namer = _log_namer
-    file_handler.rotator = _log_rotator
     file_handler.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(

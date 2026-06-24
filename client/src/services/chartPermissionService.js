@@ -1,4 +1,4 @@
-import api from './api';
+﻿import api from './api';
 
 export const getUserChartPermissions = (userId) => api.get(`/chart-permissions/user/${userId}`);
 
@@ -6,7 +6,7 @@ export const setUserChartPermissions = (userId, tableIds) => api.post(`/chart-pe
 
 export const getRoleChartPermissions = (roleId) => api.get(`/chart-permissions/role/${roleId}`);
 
-export const setRoleChartPermissions = (roleId, tableIds) => api.post(`/chart-permissions/role/${roleId}`, { tableIds });
+export const setRoleChartPermissions = (roleId, tableIds, dataPermConfigs) => api.post(`/chart-permissions/role/${roleId}`, { tableIds, dataPermConfigs });
 
 export const getDepartmentChartPermissions = (deptId) => api.get(`/chart-permissions/department/${deptId}`);
 
@@ -14,6 +14,6 @@ export const setDepartmentChartPermissions = (deptId, tableIds) => api.post(`/ch
 
 export const getDataPermissionConfig = (tableId) => api.get(`/chart-permissions/data-permission/${tableId}`);
 
-export const setDataPermissionConfig = (tableId, data) => api.post(`/chart-permissions/data-permission/${tableId}`, data);
+export const setDataPermissionConfig = (tableId, data) => api.post(`/chart-permissions/data-permission/${tableId}`, { ...data, roleId: data.roleId });
 
-export const getAllDataPermissionConfigs = () => api.get(`/chart-permissions/data-permission/configs`);
+export const getAllDataPermissionConfigs = (roleId) => api.get(`/chart-permissions/data-permission/configs`, { params: { role_id: roleId } });

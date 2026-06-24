@@ -223,6 +223,93 @@ def wrap_sql_aliases(sql_str):
     return result
 
 
+def wrap_special_field_names(sql_str):
+    """自动检测SELECT子句中含特殊字符的字段名，用反引号包裹
+
+    只处理SELECT到第一个FROM之间的字段列表，不处理WHERE、GROUP BY等子句中的字段名。
+    如果SQL不以SELECT开头（如WITH开头），直接返回原SQL不做处理。
+    如果找不到FROM关键字，直接返回原SQL不做处理。
+    保持原SQL的空白和换行格式，只替换字段列表部分。
+    """
+    # 如果SQL不以SELECT开头（如WITH开头），直接返回原SQL不做处理
+    stripped = sql_str.lstrip()
+    if not re.match(r'(?i)^SELECT\b', stripped):
+        return sql_str
+
+    # 用正则提取SELECT子句：匹配 SELECT（或 SELECT DISTINCT、SELECT ALL）到 FROM 之间的字段列表部分
+    # 保留SELECT关键字前缀（如DISTINCT）
+    match = re.match(r'(?is)^(\s*SELECT\s+(?:DISTINCT\s+|ALL\s+)?)(.*?)(\bFROM\b.*)$', sql_str)
+    if not match:
+        # 找不到FROM关键字，直接返回原SQL不做处理
+        return sql_str
+
+    prefix = match.group(1)      # SELECT前缀部分（含DISTINCT/ALL）
+    fields_str = match.group(2)  # 字段列表部分
+    suffix = match.group(3)      # FROM之后的部分
+
+    # 将字段列表按逗号分割，但必须尊重括号嵌套（逗号在括号内不分割）
+    parts = []
+    current = ''
+    depth = 0
+    for ch in fields_str:
+        if ch == '(':
+            depth += 1
+            current += ch
+        elif ch == ')':
+            depth -= 1
+            current += ch
+        elif ch == ',' and depth == 0:
+            parts.append(current)
+            current = ''
+        else:
+            current += ch
+    parts.append(current)
+
+    # 对每个分割出的字段片段进行处理
+    new_parts = []
+    for part in parts:
+        stripped_part = part.strip()
+        if not stripped_part:
+            # 空片段，直接保留
+            new_parts.append(part)
+            continue
+        # 如果包含 AS（大小写不敏感，单词边界），跳过（别名由 wrap_sql_aliases 处理）
+        if re.search(r'(?i)\bAS\b', stripped_part):
+            new_parts.append(part)
+            continue
+        # 如果包含空格，跳过（是表达式如 a + b）
+        if ' ' in stripped_part:
+            new_parts.append(part)
+            continue
+        # 如果包含 ( 或 )，跳过（是函数调用或括号表达式）
+        if '(' in stripped_part or ')' in stripped_part:
+            new_parts.append(part)
+            continue
+        # 如果已经以反引号开头和结尾，跳过
+        if stripped_part.startswith('`') and stripped_part.endswith('`'):
+            new_parts.append(part)
+            continue
+        # 如果是 *（通配符），跳过
+        if stripped_part == '*':
+            new_parts.append(part)
+            continue
+        # 如果是纯数字，跳过
+        if re.match(r'^\d+$', stripped_part):
+            new_parts.append(part)
+            continue
+        # 检测是否含特殊字符：非字母数字下划线、非中文字符
+        if re.search(r'[^\w\u4e00-\u9fff]', stripped_part):
+            # 用反引号包裹该字段名，保留原片段的首尾空白
+            leading = part[:len(part) - len(part.lstrip())]
+            trailing = part[len(part.rstrip()):]
+            new_parts.append(f"{leading}`{stripped_part}`{trailing}")
+        else:
+            new_parts.append(part)
+
+    # 重新拼接字段列表，替换原SQL中的字段列表部分
+    new_fields_str = ','.join(new_parts)
+    return f"{prefix}{new_fields_str}{suffix}"
+
 
 def _is_simple_select_sql(sql_str):
     """判断SQL是否为简单SELECT查询（不含UNION、GROUP BY、HAVING、DISTINCT等复杂语法）"""
@@ -240,6 +327,9 @@ def get_sql_columns(ds_id, sql_str):
     ds = find_by_id_with_password(ds_id)
     if not ds:
         return []
+    # 先包裹含特殊字符的字段名，再包裹别名（在try块外定义，确保备用路径也能使用）
+    processed_sql = wrap_special_field_names(sql_str)
+    processed_sql = wrap_sql_aliases(processed_sql)
     conn = None
     try:
         import pymysql
@@ -252,14 +342,12 @@ def get_sql_columns(ds_id, sql_str):
         cursor = conn.cursor()
         columns = []
 
-        # 判断是否为简单SQL，简单SQL直接执行LIMIT 0避免子查询包装导致的字段排序问题
         if _is_simple_select_sql(sql_str):
             # 简单SQL：直接执行LIMIT 0，保持字段原始顺序（特别是中文别名）
-            cursor.execute(f"{sql_str} LIMIT 0")
+            cursor.execute(f"{processed_sql} LIMIT 0")
         else:
-            # 复杂SQL：使用子查询包装，需要先处理别名
-            wrapped_sql = wrap_sql_aliases(sql_str)
-            cursor.execute(f"SELECT * FROM ({wrapped_sql}) AS _sub_query LIMIT 0")
+            # 复杂SQL：使用子查询包装
+            cursor.execute(f"SELECT * FROM ({processed_sql}) AS _sub_query LIMIT 0")
 
         for desc in cursor.description:
             columns.append({'name': desc[0], 'type': str(desc[1]) if desc[1] else 'text'})
@@ -280,7 +368,7 @@ def get_sql_columns(ds_id, sql_str):
                 database=ds['database_name'], connect_timeout=10
             )
             cursor = conn.cursor(pymysql.cursors.DictCursor)
-            cursor.execute(f"{sql_str} LIMIT 1")
+            cursor.execute(f"{processed_sql} LIMIT 1")
             rows = cursor.fetchall()
             columns = []
             if rows:
@@ -312,6 +400,7 @@ def execute_query(ds_id, sql_str, params=None):
             database=ds['database_name'], connect_timeout=10
         )
         cursor = conn.cursor(pymysql.cursors.DictCursor)
+        sql_str = wrap_special_field_names(sql_str)
         sql_str = wrap_sql_aliases(sql_str)
         cursor.execute(sql_str, params)
         rows = cursor.fetchall()

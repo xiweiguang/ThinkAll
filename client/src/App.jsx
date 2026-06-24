@@ -27,6 +27,11 @@ import StoryboardPlayPage from './pages/StoryboardPlayPage';
 import StoryboardPublicPage from './pages/StoryboardPublicPage';
 import LogViewerPage from './pages/LogViewerPage';
 import AboutPage from './pages/AboutPage';
+import ApprovalTemplateListPage from './pages/approval/ApprovalTemplateListPage';
+import ApprovalTemplateEditPage from './pages/approval/ApprovalTemplateEditPage';
+import ApprovalStartPage from './pages/approval/ApprovalStartPage';
+import ApprovalTodoPage from './pages/approval/ApprovalTodoPage';
+import ApprovalDetailPage from './pages/approval/ApprovalDetailPage';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -91,6 +96,12 @@ function AppRoutes() {
         <Route path="log-viewer" element={<LogViewerPage />} />
         <Route path="about" element={<AboutPage />} />
         <Route path="table/:tableId" element={<TablePage />} />
+        <Route path="approval/templates" element={<ApprovalTemplateListPage />} />
+        <Route path="approval/template-edit" element={<ApprovalTemplateEditPage />} />
+        <Route path="approval/template-edit/:id" element={<ApprovalTemplateEditPage />} />
+        <Route path="approval/start" element={<ApprovalStartPage />} />
+        <Route path="approval/todo" element={<ApprovalTodoPage />} />
+        <Route path="approval/detail/:id" element={<ApprovalDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>

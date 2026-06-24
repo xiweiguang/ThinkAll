@@ -27,6 +27,7 @@ from routes.chat import chat_bp
 from routes.log_viewer import log_bp
 from routes.dashboard import dashboard_bp
 from routes.storyboard import storyboard_bp
+from routes.approval import approval_bp
 from utils.logger import app_logger, log_api_request
 from utils.limiter import limiter
 
@@ -55,6 +56,7 @@ def create_app():
     app.register_blueprint(log_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(storyboard_bp)
+    app.register_blueprint(approval_bp)
 
     # 无需认证的静态文件路由，供背景图等CSS backgroundImage访问
     UPLOAD_DIR = os.path.join(os.path.dirname(__file__), 'uploads')

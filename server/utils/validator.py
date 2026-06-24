@@ -127,14 +127,17 @@ def validate_pagination(args):
 
 
 def validate_query_sql(sql_str):
-    """校验SQL语句是否为安全的SELECT查询，防止SQL注入（白名单方式）"""
+    """校验SQL语句是否为安全的SELECT查询，防止SQL注入
+
+    仅进行结构性校验：以SELECT/WITH开头、无多语句、无块注释。
+    不检查关键词黑名单，避免误杀合法的MySQL函数名（如REPLACE()）和字符串字面量。
+    数据库层面的安全由数据库用户权限保障（只读账户）。
+    """
     if not sql_str or not sql_str.strip():
         return {'valid': False, 'errors': ['SQL语句不能为空']}
 
-    # 去除前导空白和注释后，SQL必须以SELECT或WITH开头
-    # 先移除行首的空白，然后检查是否以SELECT或WITH开头
     stripped_sql = sql_str.strip()
-    # 移除前导的行注释（-- 开头的行）
+    # 移除前导的行注释（-- 开头的行），找到第一条有效语句
     lines = stripped_sql.split('\n')
     first_meaningful = ''
     for line in lines:
@@ -151,44 +154,9 @@ def validate_query_sql(sql_str):
     if not (normalized_upper.startswith('SELECT') or normalized_upper.startswith('WITH')):
         return {'valid': False, 'errors': ['仅允许SELECT查询']}
 
-    # 禁止的危险模式列表（白名单方式：只允许SELECT/UNION/WITH，其余危险操作一律禁止）
-    dangerous_patterns = [
-        # DDL语句
-        (r'\bALTER\b', 'ALTER'),
-        (r'\bCREATE\b', 'CREATE'),
-        (r'\bDROP\b', 'DROP'),
-        (r'\bRENAME\b', 'RENAME'),
-        (r'\bTRUNCATE\b', 'TRUNCATE'),
-        # DML写操作
-        (r'\bINSERT\b', 'INSERT'),
-        (r'\bUPDATE\b', 'UPDATE'),
-        (r'\bDELETE\b', 'DELETE'),
-        (r'\bREPLACE\b', 'REPLACE'),
-        # 存储过程
-        (r'\bCALL\b', 'CALL'),
-        (r'\bEXECUTE\b', 'EXECUTE'),
-        (r'\bPREPARE\b', 'PREPARE'),
-        (r'\bDEALLOCATE\b', 'DEALLOCATE'),
-        # 权限操作
-        (r'\bGRANT\b', 'GRANT'),
-        (r'\bREVOKE\b', 'REVOKE'),
-        # 系统操作
-        (r'\bSHUTDOWN\b', 'SHUTDOWN'),
-        (r'\bKILL\b', 'KILL'),
-        (r'\bLOAD_FILE\b', 'LOAD_FILE'),
-        (r'\bINTO\s+OUTFILE\b', 'INTO OUTFILE'),
-        (r'\bINTO\s+DUMPFILE\b', 'INTO DUMPFILE'),
-        # 注释符号（防止注释注入）
-        (r'/\*', '/*'),
-        (r'\*/', '*/'),
-        # 分号后跟非空白（防止多语句执行）
-        (r';\s*\S', '多语句执行'),
-    ]
-
-    full_upper = sql_str.upper()
-    for pattern, name in dangerous_patterns:
-        if re.search(pattern, full_upper):
-            return {'valid': False, 'errors': [f'SQL中不允许包含 {name}']}
+    # 禁止块注释（防止注释注入）
+    if '/*' in sql_str or '*/' in sql_str:
+        return {'valid': False, 'errors': ['SQL中不允许包含块注释 /* */']}
 
     # 检查分号：只允许末尾有一个分号或不加分号
     stripped = sql_str.rstrip()

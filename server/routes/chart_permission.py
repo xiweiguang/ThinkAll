@@ -42,9 +42,10 @@ def get_role_chart_permissions(role_id):
 def set_role_chart_permissions(role_id):
     data = request.get_json() or {}
     table_ids = data.get('tableIds', [])
+    data_perm_configs = data.get('dataPermConfigs', {})
     if not isinstance(table_ids, list):
         return error('tableIds 必须为数组', 400)
-    assign_to_role(role_id, table_ids)
+    assign_to_role(role_id, table_ids, data_perm_configs=data_perm_configs)
     return success(None, '角色图表权限设置成功')
 
 
@@ -74,8 +75,9 @@ def set_department_chart_permissions(dept_id):
 @login_required
 @permission_required('system:user:read')
 def get_all_data_permission_configs_api():
-    """获取所有图表数据权限配置"""
-    configs = get_all_data_permission_configs()
+    """获取所有图表数据权限配置（按角色）"""
+    role_id = request.args.get('role_id', type=int)
+    configs = get_all_data_permission_configs(role_id=role_id)
     return success(configs)
 
 
@@ -92,9 +94,13 @@ def get_data_permission_config_api(table_id):
 @login_required
 @permission_required('system:user:update')
 def set_data_permission_config_api(table_id):
-    """设置图表数据权限配置"""
+    """设置图表数据权限配置（按角色）"""
     data = request.get_json() or {}
+    role_id = data.get('roleId')
     data_permission = data.get('dataPermission', False)
     match_field = data.get('matchField', None)
-    set_data_permission_config(table_id, data_permission, match_field)
+    department_field = data.get('departmentField', None)
+    if not role_id:
+        return error('缺少角色ID', 400)
+    set_data_permission_config(role_id, table_id, data_permission, match_field, department_field)
     return success(None, '数据权限配置设置成功')

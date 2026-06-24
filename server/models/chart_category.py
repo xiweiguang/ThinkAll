@@ -61,3 +61,9 @@ def delete_category(category_id):
     """删除分类"""
     query('DELETE FROM sys_chart_categories WHERE id = %s', (category_id,))
     return True
+
+
+def update_sort_order(category_id, sort_order):
+    """更新分类排序值"""
+    query('UPDATE sys_chart_categories SET sort_order = %s WHERE id = %s', (sort_order, category_id))
+    return True

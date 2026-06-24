@@ -46,6 +46,8 @@ import {
   QuestionCircleOutlined,
   ColumnWidthOutlined,
   ApartmentOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import * as chartDesignerService from '../services/chartDesignerService';
@@ -679,6 +681,31 @@ export default function ChartDesignerPage() {
     }
   };
 
+  // 处理图表上移/下移
+  const handleMoveChart = async (chart, direction, index) => {
+    try {
+      // 获取当前过滤后的图表列表
+      const siblings = filteredCharts;
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= siblings.length) {
+        message.warning(direction === 'up' ? '已是第一个' : '已是最后一个');
+        return;
+      }
+      const targetChart = siblings[targetIndex];
+      // 使用 chart_id（字符串标识）和索引值排序
+      const items = [
+        { chart_id: chart.chart_id, sort_order: targetIndex },
+        { chart_id: targetChart.chart_id, sort_order: index },
+      ];
+      await chartDesignerService.updateSortOrder(items);
+      message.success('排序已更新');
+      // 刷新图表列表
+      fetchCharts();
+    } catch (err) {
+      message.error('排序失败');
+    }
+  };
+
   // 复制图表
   const handleCopyChart = async (chartId) => {
     try {
@@ -720,6 +747,47 @@ export default function ChartDesignerPage() {
       fetchCategories();
     } catch {
       message.error('删除分类失败');
+    }
+  };
+
+  // 在分类管理弹窗中处理分类上移/下移
+  const handleMoveCategoryInModal = async (category, direction) => {
+    try {
+      // 找到同级分类列表
+      const findSiblings = (cats, parentId) => {
+        if (parentId === null || parentId === undefined) {
+          return cats.filter(c => !c.parentId);
+        }
+        for (const cat of cats) {
+          if (cat.id === parentId) return cat.children || [];
+          if (cat.children) {
+            const found = findSiblings(cat.children, parentId);
+            if (found.length > 0) return found;
+          }
+        }
+        return [];
+      };
+      const siblings = findSiblings(categories, category.parentId);
+      const currentIndex = siblings.findIndex(c => c.id === category.id);
+      if (currentIndex === -1) return;
+
+      const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      if (targetIndex < 0 || targetIndex >= siblings.length) {
+        message.warning(direction === 'up' ? '已是第一个' : '已是最后一个');
+        return;
+      }
+
+      const targetCategory = siblings[targetIndex];
+      const items = [
+        { id: category.id, sort_order: targetCategory.sortOrder },
+        { id: targetCategory.id, sort_order: category.sortOrder },
+      ];
+      await chartCategoryService.updateSortOrder(items);
+      message.success('排序已更新');
+      // 刷新分类数据
+      fetchCategories();
+    } catch (err) {
+      message.error('排序失败');
     }
   };
 
@@ -2177,10 +2245,32 @@ export default function ChartDesignerPage() {
             {
               title: '操作',
               key: 'action',
-              width: 240,
+              width: 320,
               fixed: 'right',
-              render: (_, record) => (
+              render: (_, record, index) => (
                 <Space size="small">
+                  {hasPermission('system:chart-designer:update') && (
+                    <>
+                      <Tooltip title="上移">
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<ArrowUpOutlined />}
+                          disabled={index === 0}
+                          onClick={() => handleMoveChart(record, 'up', index)}
+                        />
+                      </Tooltip>
+                      <Tooltip title="下移">
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<ArrowDownOutlined />}
+                          disabled={index === filteredCharts.length - 1}
+                          onClick={() => handleMoveChart(record, 'down', index)}
+                        />
+                      </Tooltip>
+                    </>
+                  )}
                   {hasPermission('system:chart-designer:update') && (
                     <Tooltip title="编辑">
                       <Button
@@ -2300,6 +2390,30 @@ export default function ChartDesignerPage() {
           <Dropdown
             menu={{
               items: contextMenuNode ? [
+                {
+                  key: 'move-up',
+                  icon: <ArrowUpOutlined />,
+                  label: '上移',
+                  onClick: () => {
+                    if (contextMenuNode.catData) {
+                      handleMoveCategoryInModal(contextMenuNode.catData, 'up');
+                    }
+                    setContextMenuVisible(false);
+                    setContextMenuNode(null);
+                  },
+                },
+                {
+                  key: 'move-down',
+                  icon: <ArrowDownOutlined />,
+                  label: '下移',
+                  onClick: () => {
+                    if (contextMenuNode.catData) {
+                      handleMoveCategoryInModal(contextMenuNode.catData, 'down');
+                    }
+                    setContextMenuVisible(false);
+                    setContextMenuNode(null);
+                  },
+                },
                 {
                   key: 'edit',
                   icon: <EditOutlined />,

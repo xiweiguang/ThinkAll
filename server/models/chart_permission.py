@@ -60,14 +60,26 @@ def find_by_department(dept_id):
     return [r['table_id'] for r in rows]
 
 
-def assign_to_role(role_id, table_ids):
-    """分配角色图表权限（全量覆盖），使用事务保证原子性"""
+def assign_to_role(role_id, table_ids, data_perm_configs=None):
+    """分配角色图表权限（全量覆盖），使用事务保证原子性
+
+    Args:
+        role_id: 角色ID
+        table_ids: 图表ID列表
+        data_perm_configs: 数据权限配置字典，格式 {table_id: {enabled: bool, match_field: str, department_field: str}}
+    """
+    data_perm_configs = data_perm_configs or {}
     conn = get_transaction_connection()
     try:
         transaction_query(conn, 'DELETE FROM sys_chart_permissions WHERE target_type = %s AND target_id = %s', ('role', role_id))
         for table_id in table_ids:
-            transaction_query(conn, 'INSERT INTO sys_chart_permissions (target_type, target_id, table_id) VALUES (%s, %s, %s)',
-                  ('role', role_id, table_id))
+            dp = data_perm_configs.get(table_id, {})
+            data_permission = 1 if dp.get('enabled', False) else 0
+            match_field = dp.get('match_field') or None
+            department_field = dp.get('department_field') or None
+            transaction_query(conn,
+                'INSERT INTO sys_chart_permissions (target_type, target_id, table_id, data_permission, match_field, department_field) VALUES (%s, %s, %s, %s, %s, %s)',
+                ('role', role_id, table_id, data_permission, match_field, department_field))
         conn.commit()
     except Exception:
         conn.rollback()
@@ -130,3 +142,36 @@ def find_table_permission_details(table_id):
         elif r['target_type'] == 'department':
             result['departments'].append(r['target_id'])
     return result
+
+
+def get_role_data_perm_config(role_id, table_id):
+    """获取指定角色对指定图表的数据权限配置"""
+    rows = query(
+        'SELECT data_permission, match_field, department_field FROM sys_chart_permissions WHERE target_type = %s AND target_id = %s AND table_id = %s',
+        ('role', role_id, table_id)
+    )
+    if rows:
+        return {
+            'enabled': rows[0].get('data_permission') == 1,
+            'match_field': rows[0].get('match_field'),
+            'department_field': rows[0].get('department_field')
+        }
+    return {'enabled': False, 'match_field': None, 'department_field': None}
+
+
+def get_role_all_data_perm_configs(role_id):
+    """获取指定角色所有图表的数据权限配置"""
+    rows = query(
+        'SELECT table_id, data_permission, match_field, department_field FROM sys_chart_permissions WHERE target_type = %s AND target_id = %s',
+        ('role', role_id)
+    )
+    configs = {}
+    for row in rows:
+        table_id = row.get('table_id')
+        if table_id:
+            configs[table_id] = {
+                'enabled': row.get('data_permission') == 1,
+                'match_field': row.get('match_field'),
+                'department_field': row.get('department_field')
+            }
+    return configs
