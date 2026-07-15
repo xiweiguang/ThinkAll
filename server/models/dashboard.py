@@ -31,8 +31,17 @@ def create_dashboard(name, description='', layout_config=None, created_by=None):
     return query(sql, (name, description, layout_config, created_by))
 
 
-def update_dashboard(dashboard_id, name=None, description=None, layout_config=None, panel_config=None, layout_type=None, panel_size=None):
-    """更新可视化页面"""
+def update_dashboard(dashboard_id, name=None, description=None, layout_config=None, panel_config=None, layout_type=None, panel_size=None,
+                     theme_mode=None, auto_refresh_interval=None, video_bg=None, particle_enabled=None, particle_config=None):
+    """更新可视化页面
+
+    扩展支持大屏 DataV 风格字段：
+    - theme_mode: 主题模式（light/dark/tech_blue/night/medical_green）
+    - auto_refresh_interval: 自动刷新间隔（秒，0=关闭）
+    - video_bg: 视频背景URL（dict 时 json.dumps）
+    - particle_enabled: 粒子动画开关（0/1，转为 int）
+    - particle_config: 粒子配置 JSON（dict 时 json.dumps）
+    """
     updates = []
     params = []
     if name is not None:
@@ -57,6 +66,38 @@ def update_dashboard(dashboard_id, name=None, description=None, layout_config=No
     if panel_size is not None:
         updates.append("panel_size = %s")
         params.append(panel_size)
+    # ===== 大屏 DataV 风格扩展字段（仅大屏模块内部使用）=====
+    if theme_mode is not None:
+        updates.append("theme_mode = %s")
+        params.append(theme_mode)
+    if auto_refresh_interval is not None:
+        # INT 类型，确保转为整数
+        try:
+            auto_refresh_interval = int(auto_refresh_interval)
+        except (TypeError, ValueError):
+            auto_refresh_interval = 0
+        updates.append("auto_refresh_interval = %s")
+        params.append(auto_refresh_interval)
+    if video_bg is not None:
+        # 视频背景可能是字符串 URL，也可能是 dict（包含 url+配置），dict 时序列化
+        if isinstance(video_bg, dict):
+            video_bg = json.dumps(video_bg, ensure_ascii=False)
+        updates.append("video_bg = %s")
+        params.append(video_bg)
+    if particle_enabled is not None:
+        # TINYINT 类型，转为 int（兼容 bool/None/数字字符串）
+        try:
+            particle_enabled = int(particle_enabled)
+        except (TypeError, ValueError):
+            particle_enabled = 0
+        updates.append("particle_enabled = %s")
+        params.append(particle_enabled)
+    if particle_config is not None:
+        # 粒子配置 JSON，dict 时序列化
+        if isinstance(particle_config, dict):
+            particle_config = json.dumps(particle_config, ensure_ascii=False)
+        updates.append("particle_config = %s")
+        params.append(particle_config)
     if not updates:
         return
     params.append(dashboard_id)
@@ -95,17 +136,25 @@ def copy_dashboard(dashboard_id, created_by=None):
         if panel_config:
             panel_config_str = json.dumps(panel_config, ensure_ascii=False) if isinstance(panel_config, dict) else panel_config
             transaction_query(conn, "UPDATE dashboards SET panel_config = %s WHERE id = %s", (panel_config_str, new_id))
-        # 复制图表布局
+        # 复制图表布局（含大屏组件扩展字段 component_type/component_config，保证大屏组件可正确复制）
         charts = query("SELECT * FROM dashboard_charts WHERE dashboard_id = %s", (dashboard_id,))
         for chart in charts:
             chart_config = chart.get('chart_config')
             if isinstance(chart_config, dict):
                 chart_config = json.dumps(chart_config, ensure_ascii=False)
+            chart_style = chart.get('chart_style')
+            if isinstance(chart_style, dict):
+                chart_style = json.dumps(chart_style, ensure_ascii=False)
+            # 大屏组件扩展字段：component_type 默认 chart，component_config dict 时序列化
+            component_type = chart.get('component_type', 'chart')
+            component_config = chart.get('component_config')
+            if isinstance(component_config, dict):
+                component_config = json.dumps(component_config, ensure_ascii=False)
             transaction_query(conn, """
-                INSERT INTO dashboard_charts (dashboard_id, chart_id, position_x, position_y, width, height, chart_config)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """, (new_id, chart['chart_id'], chart['position_x'], chart['position_y'],
-                  chart['width'], chart['height'], chart_config))
+                INSERT INTO dashboard_charts (dashboard_id, chart_id, position_x, position_y, width, height, chart_config, chart_style, component_type, component_config)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (new_id, chart.get('chart_id'), chart['position_x'], chart['position_y'],
+                  chart['width'], chart['height'], chart_config, chart_style, component_type, component_config))
         # 复制联动配置
         linkages = query("SELECT * FROM dashboard_linkages WHERE dashboard_id = %s", (dashboard_id,))
         for link in linkages:
@@ -138,7 +187,13 @@ def get_dashboard_charts(dashboard_id):
 
 
 def save_dashboard_charts(dashboard_id, charts):
-    """保存页面图表布局（全量覆盖），使用事务保证原子性"""
+    """保存页面图表布局（全量覆盖），使用事务保证原子性
+
+    扩展支持大屏 DataV 风格组件：
+    - chart_id 允许为 None（非图表组件，如装饰标题/边框/数字翻牌等）
+    - component_type: 组件类型（默认 'chart'，可选 decorative_title/decorative_border/digital/map/progress_ring/ranking/clock/particle）
+    - component_config: 组件配置 JSON（dict 时 json.dumps），存储数据源/SQL/字段映射/样式等全部配置
+    """
     conn = get_transaction_connection()
     try:
         transaction_query(conn, "DELETE FROM dashboard_charts WHERE dashboard_id = %s", (dashboard_id,))
@@ -149,12 +204,20 @@ def save_dashboard_charts(dashboard_id, charts):
             chart_style = chart.get('chart_style')
             if isinstance(chart_style, dict):
                 chart_style = json.dumps(chart_style, ensure_ascii=False)
+            # 大屏组件扩展字段：允许 chart_id 为 None（非图表组件）
+            chart_id = chart.get('chart_id')
+            # 组件类型，默认 chart（保持向后兼容）
+            component_type = chart.get('component_type', 'chart')
+            # 组件配置 JSON，dict 时序列化
+            component_config = chart.get('component_config')
+            if isinstance(component_config, dict):
+                component_config = json.dumps(component_config, ensure_ascii=False)
             transaction_query(conn, """
-                INSERT INTO dashboard_charts (dashboard_id, chart_id, position_x, position_y, width, height, chart_config, chart_style)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """, (dashboard_id, chart['chart_id'], chart.get('position_x', 0),
+                INSERT INTO dashboard_charts (dashboard_id, chart_id, position_x, position_y, width, height, chart_config, chart_style, component_type, component_config)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (dashboard_id, chart_id, chart.get('position_x', 0),
                   chart.get('position_y', 0), chart.get('width', 6), chart.get('height', 4),
-                  chart_config, chart_style))
+                  chart_config, chart_style, component_type, component_config))
         conn.commit()
     except Exception:
         conn.rollback()
@@ -267,3 +330,14 @@ def get_dashboard_full_data(dashboard_id):
     filters = get_dashboard_filters(dashboard_id)
     db['filters'] = filters
     return db
+
+
+def execute_component_data(datasource_id, query_sql):
+    """执行大屏组件数据查询（调用共享数据源工具，独立于图表模块）
+
+    大屏 DataV 风格组件（数字翻牌/排名/进度环等）需要动态查询数据源，
+    此函数复用 models.data_source.execute_query，避免重复实现。
+    注意：在函数内部 import，避免循环依赖。
+    """
+    from models.data_source import execute_query
+    return execute_query(datasource_id, query_sql)

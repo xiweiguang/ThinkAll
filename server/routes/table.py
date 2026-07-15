@@ -290,15 +290,10 @@ def _get_dynamic_chart_data(table_config, user_id, page, page_size, offset):
             return paginate([], total, page, page_size)
 
         # 排序（SQL分页路径也需要支持排序）
-        sortable_fields = _get_dynamic_sortable_fields(table_config)
-        sort_field = request.args.get('sortField')
+        sort_field = _get_valid_sort_field(table_config, request.args.get('sortField'))
         sort_order = request.args.get('sortOrder')
-        if sort_field and sort_field in sortable_fields:
-            reverse = sort_order and sort_order.upper() == 'DESC'
-            try:
-                rows = sorted(rows, key=lambda r: r.get(sort_field, ''), reverse=reverse)
-            except TypeError:
-                pass
+        if sort_field and sort_order:
+            rows = _sort_rows(rows, sort_field, sort_order)
 
         return paginate(rows, total, page, page_size)
 
@@ -309,15 +304,10 @@ def _get_dynamic_chart_data(table_config, user_id, page, page_size, offset):
     if not filtered_rows:
         return paginate([], 0, page, page_size)
 
-    sortable_fields = _get_dynamic_sortable_fields(table_config)
-    sort_field = request.args.get('sortField')
+    sort_field = _get_valid_sort_field(table_config, request.args.get('sortField'))
     sort_order = request.args.get('sortOrder')
-    if sort_field and sort_field in sortable_fields:
-        reverse = sort_order and sort_order.upper() == 'DESC'
-        try:
-            filtered_rows = sorted(filtered_rows, key=lambda r: r.get(sort_field, ''), reverse=reverse)
-        except TypeError:
-            pass
+    if sort_field and sort_order:
+        filtered_rows = _sort_rows(filtered_rows, sort_field, sort_order)
 
     total = len(filtered_rows)
     paginated_rows = filtered_rows[offset:offset + page_size]
@@ -335,6 +325,62 @@ def _get_dynamic_sortable_fields(table_config):
     """获取动态图表的可排序字段"""
     columns = table_config.get('columns', [])
     return [col['dataIndex'] for col in columns if col.get('sortable')]
+
+
+def _get_valid_sort_field(table_config, sort_field):
+    """校验排序字段是否为 columns 中的合法字段，返回合法字段名或 None
+
+    不要求字段设置 sortable=true，只要字段在 columns 的 dataIndex 中即可。
+    sortable 属性仅控制前端表头是否显示排序按钮，不影响后端排序。
+    """
+    if not sort_field:
+        return None
+    columns = table_config.get('columns', [])
+    for col in columns:
+        if col.get('dataIndex') == sort_field:
+            return sort_field
+    return None
+
+
+def _sort_rows(rows, sort_field, sort_order):
+    """对行列表按指定字段排序，优先使用数值比较，失败回退字符串比较
+
+    Args:
+        rows: 行数据列表
+        sort_field: 排序字段名
+        sort_order: 排序方向，'ASC' 或 'DESC'
+
+    Returns:
+        list: 排序后的行列表
+    """
+    if not sort_field or not sort_order:
+        return rows
+    reverse = sort_order.upper() == 'DESC'
+
+    # 尝试数值排序
+    def try_float(val):
+        if val is None:
+            return None
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return None
+
+    # 检查是否所有值都可转为数值
+    all_numeric = True
+    for row in rows:
+        val = row.get(sort_field)
+        if val is not None and try_float(val) is None:
+            all_numeric = False
+            break
+
+    try:
+        if all_numeric:
+            return sorted(rows, key=lambda r: try_float(r.get(sort_field)) or 0, reverse=reverse)
+        else:
+            return sorted(rows, key=lambda r: str(r.get(sort_field, '')), reverse=reverse)
+    except TypeError:
+        return rows
 
 
 @table_bp.route('/config', methods=['GET'])

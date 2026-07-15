@@ -1,0 +1,51 @@
+/* 大屏主题 CSS 变量定义 */
+
+/* 浅色主题（默认） */
+.bigscreen-theme-light {
+  --bs-bg: #f0f2f5;
+  --bs-component-bg: #ffffff;
+  --bs-title-color: #1890ff;
+  --bs-text-color: #333333;
+  --bs-grid-line: rgba(200,200,200,0.3);
+  --bs-border-color: #e8e8e8;
+}
+
+/* 深色主题 */
+.bigscreen-theme-dark {
+  --bs-bg: #1a1a2e;
+  --bs-component-bg: #16213e;
+  --bs-title-color: #00d4ff;
+  --bs-text-color: #e0e0e0;
+  --bs-grid-line: rgba(255,255,255,0.1);
+  --bs-border-color: #2a2a4a;
+}
+
+/* 科技蓝主题 */
+.bigscreen-theme-tech_blue {
+  --bs-bg: linear-gradient(135deg, #0c1e3e 0%, #0a1428 100%);
+  --bs-component-bg: rgba(10, 30, 60, 0.6);
+  --bs-title-color: #00d4ff;
+  --bs-text-color: #b0e0ff;
+  --bs-grid-line: rgba(0, 212, 255, 0.15);
+  --bs-border-color: rgba(0, 212, 255, 0.3);
+}
+
+/* 暗夜主题 */
+.bigscreen-theme-night {
+  --bs-bg: linear-gradient(135deg, #0d0d0d 0%, #1a0a2e 100%);
+  --bs-component-bg: rgba(20, 10, 30, 0.7);
+  --bs-title-color: #a855f7;
+  --bs-text-color: #d0b0ff;
+  --bs-grid-line: rgba(168, 85, 247, 0.15);
+  --bs-border-color: rgba(168, 85, 247, 0.3);
+}
+
+/* 医疗青主题 */
+.bigscreen-theme-medical_green {
+  --bs-bg: linear-gradient(135deg, #0a2e1a 0%, #0a1a12 100%);
+  --bs-component-bg: rgba(10, 40, 25, 0.6);
+  --bs-title-color: #00e676;
+  --bs-text-color: #b0ffd0;
+  --bs-grid-line: rgba(0, 230, 118, 0.15);
+  --bs-border-color: rgba(0, 230, 118, 0.3);
+}

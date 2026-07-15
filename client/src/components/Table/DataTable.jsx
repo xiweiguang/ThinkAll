@@ -23,6 +23,7 @@ export default function DataTable({
   styleConfig = {}, // 自定义样式配置对象
   drilldownFields, // 下钻字段列表
   onDrilldown, // 下钻点击回调函数，接收 record 参数
+  userSorted = false, // 用户是否主动点击表头排序（新增）
 }) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -125,13 +126,24 @@ export default function DataTable({
     if (!dataSource || !dataSource.length) return dataSource;
     const { defaultSortField, defaultSortOrder, mergeField } = resolvedStyleConfig;
 
-    // 同时配置了合并字段和排序字段：分组排序（先按合并字段分组，组内按排序字段排序）
+    // 用户主动排序时：跳过 defaultSortField 排序，仅保留 mergeField 分组
+    if (userSorted) {
+      if (mergeField) {
+        // 只有合并字段：按合并字段分组，组内保持后端返回顺序
+        return [...dataSource].sort((a, b) => {
+          return String(a[mergeField] || '').localeCompare(String(b[mergeField] || ''), 'zh-CN');
+        });
+      }
+      // 无合并字段：直接返回原始数据（已由后端排序）
+      return dataSource;
+    }
+
+    // 用户未主动排序时：保持原有 defaultSortField + mergeField 排序逻辑
+    // 同时配置了合并字段和排序字段：分组排序
     if (mergeField && defaultSortField && defaultSortOrder && defaultSortOrder !== 'none') {
       const sorted = [...dataSource].sort((a, b) => {
-        // 先按合并字段排序
         const mergeCompare = String(a[mergeField] || '').localeCompare(String(b[mergeField] || ''), 'zh-CN');
         if (mergeCompare !== 0) return mergeCompare;
-        // 组内按排序字段排序
         const aVal = a[defaultSortField];
         const bVal = b[defaultSortField];
         if (aVal === bVal) return 0;
@@ -143,7 +155,7 @@ export default function DataTable({
         } else {
           compare = String(aVal || '').localeCompare(String(bVal || ''), 'zh-CN');
         }
-        return defaultSortOrder === 'descend' ? -compare : compare;
+        return defaultSortOrder === 'desc' ? -compare : compare;
       });
       return sorted;
     }
@@ -169,12 +181,12 @@ export default function DataTable({
         } else {
           compare = String(aVal || '').localeCompare(String(bVal || ''), 'zh-CN');
         }
-        return defaultSortOrder === 'descend' ? -compare : compare;
+        return defaultSortOrder === 'desc' ? -compare : compare;
       });
     }
 
     return dataSource;
-  }, [dataSource, resolvedStyleConfig.defaultSortField, resolvedStyleConfig.defaultSortOrder, resolvedStyleConfig.mergeField]);
+  }, [dataSource, resolvedStyleConfig.defaultSortField, resolvedStyleConfig.defaultSortOrder, resolvedStyleConfig.mergeField, userSorted]);
 
   // 使用公共函数构建带样式的列定义，然后添加类型渲染
   // 注意：使用 sortedDataSource 而非原始 dataSource，确保合并单元格的索引与实际渲染行一致

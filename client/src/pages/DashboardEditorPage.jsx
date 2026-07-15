@@ -1,12 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Input, Modal, Select, Form, message, Drawer, List, Empty, Switch, InputNumber, ColorPicker, Slider, DatePicker, Checkbox, Divider, Collapse, Upload } from 'antd';
-import { SaveOutlined, EyeOutlined, PlusOutlined, DeleteOutlined, LinkOutlined, ArrowLeftOutlined, SettingOutlined, FilterOutlined, FormatPainterOutlined, UndoOutlined, RedoOutlined, CopyOutlined, SnippetsOutlined, SendOutlined, UploadOutlined } from '@ant-design/icons';
+import { SaveOutlined, EyeOutlined, PlusOutlined, DeleteOutlined, LinkOutlined, ArrowLeftOutlined, SettingOutlined, FilterOutlined, FormatPainterOutlined, UndoOutlined, RedoOutlined, CopyOutlined, SnippetsOutlined, SendOutlined, UploadOutlined, AppstoreOutlined } from '@ant-design/icons';
 import { GridLayout, useContainerWidth } from 'react-grid-layout';
 import * as dashboardService from '../services/dashboardService';
 import ChartRenderer from '../components/Chart/ChartRenderer';
+// 大屏 DataV 风格组件（独立于图表模块，仅用于大屏画布集成）
+import { ComponentLibrary, ComponentConfigPanel, BigScreenRenderer } from '../components/BigScreen';
 import 'react-grid-layout/css/styles.css';
 import './DashboardEditorPage.css';
+
+// 大屏组件类型 → 中文名称映射（用于标题显示，加载时后端不存储 name 字段，按类型推导）
+const BIG_SCREEN_COMPONENT_NAMES = {
+  decorative_title: '装饰性大标题',
+  decorative_border: '装饰边框',
+  clock: '时钟',
+  particle: '粒子背景',
+  digital: '数字翻牌器',
+  map: '中国地图',
+  progress_ring: '双层进度环',
+  ranking: '排行榜',
+};
+
+// 根据组件类型获取大屏组件中文名称（未知类型兜底显示）
+const getBigScreenComponentName = (componentType) =>
+  BIG_SCREEN_COMPONENT_NAMES[componentType] || `大屏组件(${componentType || '未知'})`;
 
 const DashboardEditorPage = () => {
   const { id } = useParams();
@@ -33,6 +51,12 @@ const DashboardEditorPage = () => {
   const [clipboard, setClipboard] = useState(null);
   const [publishModalVisible, setPublishModalVisible] = useState(false);
   const [publishAccessMode, setPublishAccessMode] = useState('public');
+  // ===== 大屏 DataV 风格组件集成（方案B严格隔离）=====
+  // 大屏组件库面板是否显示
+  const [componentLibraryVisible, setComponentLibraryVisible] = useState(false);
+  // 大屏组件数据映射表：key 为 layout item 的 i（'comp_' 前缀），value 为 { component_type, component_config, name }
+  // 与图表的 chartStyles 结构平行，独立存储，不干扰现有图表逻辑
+  const [bigScreenComponents, setBigScreenComponents] = useState({});
 
   // 获取页面详情数据
   const fetchDashboard = async () => {
@@ -63,17 +87,46 @@ const DashboardEditorPage = () => {
       }
       setLayoutType(data.layout_type || 'auto');
       setPanelSize(data.panel_size || '1920x1080');
-      // 将charts转为layout格式
-      const chartLayouts = (data.charts || []).map((c, idx) => ({
-        i: String(c.chart_id),
-        x: c.position_x || (idx % 2) * 6,
-        y: c.position_y || Math.floor(idx / 2) * 4,
-        w: c.width || 6,
-        h: c.height || 4,
-        minW: 2,
-        minH: 2,
-      }));
+      // 将charts转为layout格式，同时区分图表与大屏组件
+      const chartLayouts = [];
+      const bigComps = {};
+      (data.charts || []).forEach((c, idx) => {
+        // 判断是否为大屏组件（component_type 存在且不为 'chart'）
+        const isBigScreen = c.component_type && c.component_type !== 'chart';
+        let key;
+        if (isBigScreen) {
+          // 大屏组件：chart_id 为 null，使用 dashboard_charts 主键 id 作为稳定标识，加 comp_ 前缀
+          key = `comp_${c.id}`;
+          // 解析 component_config（后端可能以字符串形式存储）
+          let compConfig = c.component_config;
+          if (typeof compConfig === 'string') {
+            try {
+              compConfig = JSON.parse(compConfig);
+            } catch (e) {
+              compConfig = {};
+            }
+          }
+          bigComps[key] = {
+            component_type: c.component_type,
+            component_config: compConfig || {},
+            name: getBigScreenComponentName(c.component_type),
+          };
+        } else {
+          // 图表：使用 chart_id 作为标识（保持原有行为）
+          key = String(c.chart_id);
+        }
+        chartLayouts.push({
+          i: key,
+          x: c.position_x || (idx % 2) * 6,
+          y: c.position_y || Math.floor(idx / 2) * 4,
+          w: c.width || 6,
+          h: c.height || 4,
+          minW: 2,
+          minH: 2,
+        });
+      });
       setLayout(chartLayouts);
+      setBigScreenComponents(bigComps);
     } catch (e) {
       message.error('获取页面数据失败');
     }
@@ -121,9 +174,60 @@ const DashboardEditorPage = () => {
     message.success(`已添加图表: ${chart.name}`);
   };
 
-  // 从画布移除图表
+  // 添加大屏组件到画布（独立于图表添加逻辑，使用 comp_ 前缀区分）
+  // 复用 handleAddChart 的模式：生成 layout item + 存储组件数据，区别在于 key 使用 comp_ 前缀
+  const handleAddComponent = (component) => {
+    // 生成唯一 item key，使用 comp_ 前缀以区分图表（图表使用 chart_id 数字字符串）
+    const newId = `comp_${Date.now()}`;
+    // 计算放置位置：放在当前布局最底部（参考 handleAddChart 的 maxY 计算）
+    const maxY = layout.reduce((max, l) => Math.max(max, l.y + l.h), 0);
+    // 创建新的 layout item（参考 handleAddChart 的结构）
+    const newItem = {
+      i: newId,
+      x: 0,
+      y: maxY,
+      w: 6,
+      h: 4,
+      minW: 2,
+      minH: 2,
+    };
+    setLayout([...layout, newItem]);
+    // 存储大屏组件数据（component_type/component_config/name）
+    setBigScreenComponents(prev => ({
+      ...prev,
+      [newId]: {
+        component_type: component.component_type,
+        component_config: component.component_config || {},
+        name: component.name || getBigScreenComponentName(component.component_type),
+      },
+    }));
+    setComponentLibraryVisible(false);
+    message.success(`已添加大屏组件: ${component.name || component.component_type}`);
+  };
+
+  // 大屏组件属性配置变更（更新 component_config，保留 component_type/name）
+  const handleComponentConfigChange = (componentKey, newConfig) => {
+    setBigScreenComponents(prev => ({
+      ...prev,
+      [componentKey]: {
+        ...prev[componentKey],
+        component_config: newConfig,
+      },
+    }));
+  };
+
+  // 从画布移除图表或大屏组件
   const handleRemoveChart = (chartId) => {
-    setLayout(layout.filter(l => l.i !== String(chartId)));
+    const key = String(chartId);
+    setLayout(layout.filter(l => l.i !== key));
+    // 若为大屏组件，同时清理 bigScreenComponents 中的数据，避免残留
+    if (key.startsWith('comp_')) {
+      setBigScreenComponents(prev => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
   };
 
   const pushHistory = (newLayout) => {
@@ -148,9 +252,12 @@ const DashboardEditorPage = () => {
   };
 
   const handleCopy = (chartId) => {
-    const item = layout.find(l => l.i === String(chartId));
+    const key = String(chartId);
+    const item = layout.find(l => l.i === key);
     if (item) {
-      setClipboard({ ...item });
+      // 大屏组件需同时复制 component 数据，便于粘贴时重建
+      const compData = key.startsWith('comp_') ? bigScreenComponents[key] : null;
+      setClipboard({ ...item, _bigScreenComp: compData });
       message.success('已复制组件');
     }
   };
@@ -160,14 +267,31 @@ const DashboardEditorPage = () => {
       message.warning('没有可粘贴的组件');
       return;
     }
+    // 判断粘贴来源是否为大屏组件：大屏组件使用 comp_ 前缀，图表使用纯数字字符串
+    const isBigScreen = clipboard.i && clipboard.i.startsWith('comp_');
+    // 生成新的唯一 key：大屏组件保持 comp_ 前缀，图表使用纯数字字符串（保持原有行为）
+    const newId = isBigScreen ? `comp_${Date.now()}` : String(Date.now());
     const newItem = {
       ...clipboard,
-      i: String(Date.now()),
+      i: newId,
       x: clipboard.x + 1,
       y: clipboard.y + 1,
     };
+    // 移除内部标记字段，避免污染 layout item
+    delete newItem._bigScreenComp;
     const newLayout = [...layout, newItem];
     setLayout(newLayout);
+    // 大屏组件：复制 component 数据到新 key，深拷贝 component_config 避免引用共享
+    if (isBigScreen && clipboard._bigScreenComp) {
+      setBigScreenComponents(prev => ({
+        ...prev,
+        [newId]: {
+          component_type: clipboard._bigScreenComp.component_type,
+          component_config: { ...clipboard._bigScreenComp.component_config },
+          name: clipboard._bigScreenComp.name,
+        },
+      }));
+    }
     pushHistory(newLayout);
     message.success('已粘贴组件');
   };
@@ -176,14 +300,36 @@ const DashboardEditorPage = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const chartsData = layout.map(l => ({
-        chart_id: parseInt(l.i),
-        position_x: l.x,
-        position_y: l.y,
-        width: l.w,
-        height: l.h,
-        chart_style: chartStyles[l.i] || null,
-      }));
+      // 构建 charts 数据：区分图表与大屏组件
+      // 图表保持原有数据结构（chart_id=parseInt(i)）；大屏组件 chart_id=null，携带 component_type/component_config
+      const chartsData = layout.map(l => {
+        const isBigScreen = l.i.startsWith('comp_');
+        if (isBigScreen) {
+          // 大屏组件：chart_id 为 null，携带 component_type/component_config
+          const comp = bigScreenComponents[l.i];
+          return {
+            chart_id: null,
+            position_x: l.x,
+            position_y: l.y,
+            width: l.w,
+            height: l.h,
+            chart_style: null,
+            component_type: comp?.component_type || 'chart',
+            component_config: comp?.component_config || null,
+          };
+        }
+        // 图表：保持原有数据结构，显式声明 component_type='chart'（与后端默认值一致）
+        return {
+          chart_id: parseInt(l.i),
+          position_x: l.x,
+          position_y: l.y,
+          width: l.w,
+          height: l.h,
+          chart_style: chartStyles[l.i] || null,
+          component_type: 'chart',
+          component_config: null,
+        };
+      });
       await dashboardService.updateDashboard(id, {
         name: dashboard?.name,
         charts: chartsData,
@@ -217,6 +363,7 @@ const DashboardEditorPage = () => {
           <Button icon={<RedoOutlined />} disabled={historyIndex >= history.length - 1} onClick={handleRedo}>重做</Button>
           <Button icon={<SnippetsOutlined />} disabled={!clipboard} onClick={handlePaste}>粘贴</Button>
           <Button icon={<PlusOutlined />} onClick={() => setAddModalVisible(true)}>添加图表</Button>
+          <Button icon={<AppstoreOutlined />} onClick={() => setComponentLibraryVisible(true)}>添加大屏组件</Button>
           <Select value={layoutType} onChange={v => setLayoutType(v)} style={{ width: 100 }}>
             <Select.Option value="auto">自动布局</Select.Option>
             <Select.Option value="free">自由布局</Select.Option>
@@ -244,7 +391,7 @@ const DashboardEditorPage = () => {
       <div className="dashboard-editor-canvas" ref={gridContainerRef}>
         {layout.length === 0 ? (
           <div className="dashboard-editor-empty">
-            <Empty description={'点击「添加图表」开始搭建可视化页面'} />
+            <Empty description={'点击「添加图表」或「添加大屏组件」开始搭建可视化页面'} />
           </div>
         ) : gridMounted && (
           <GridLayout
@@ -260,6 +407,9 @@ const DashboardEditorPage = () => {
             allowOverlap={layoutType === 'free'}
           >
             {layout.map(item => {
+              // 判断是否为大屏组件（i 以 comp_ 开头），独立于图表渲染分支
+              const isBigScreen = item.i.startsWith('comp_');
+              const bigScreenComp = isBigScreen ? bigScreenComponents[item.i] : null;
               const style = chartStyles[item.i] || {};
               // 获取全局样式配置（来自面板设计的样式配置）
               const globalStyle = panelConfig.styleConfig || {};
@@ -304,7 +454,9 @@ const DashboardEditorPage = () => {
                       textAlign: componentTitlePosition === 'top-center' ? 'center' : 'left',
                       display: componentTitlePosition === 'hidden' ? 'none' : undefined,
                       flex: componentTitlePosition === 'hidden' ? undefined : 1,
-                    }}>{availableCharts.find(c => c.id === parseInt(item.i))?.name || `图表 ${item.i}`}</span>
+                    }}>{isBigScreen
+                      ? (bigScreenComp?.name || getBigScreenComponentName(bigScreenComp?.component_type))
+                      : (availableCharts.find(c => c.id === parseInt(item.i))?.name || `图表 ${item.i}`)}</span>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <CopyOutlined className="chart-style-btn" onClick={() => handleCopy(item.i)} />
                       <SettingOutlined className="chart-style-btn" onClick={() => { setSelectedChartId(item.i); setStyleDrawerVisible(true); }} />
@@ -312,12 +464,22 @@ const DashboardEditorPage = () => {
                     </div>
                   </div>
                   <div className="chart-preview-area">
-                    <ChartRenderer
-                      chartId={parseInt(item.i)}
-                      width="100%"
-                      height="100%"
-                      showTitle={style.showTitle !== undefined ? style.showTitle : true}
-                    />
+                    {isBigScreen ? (
+                      <BigScreenRenderer
+                        component_type={bigScreenComp?.component_type}
+                        component_config={bigScreenComp?.component_config}
+                        chart_id={null}
+                        width="100%"
+                        height="100%"
+                      />
+                    ) : (
+                      <ChartRenderer
+                        chartId={parseInt(item.i)}
+                        width="100%"
+                        height="100%"
+                        showTitle={style.showTitle !== undefined ? style.showTitle : true}
+                      />
+                    )}
                   </div>
                 </div>
               );
@@ -343,6 +505,12 @@ const DashboardEditorPage = () => {
           )}
         />
       </Modal>
+      {/* 大屏组件库面板（独立于图表添加 Modal，方案B严格隔离） */}
+      <ComponentLibrary
+        visible={componentLibraryVisible}
+        onClose={() => setComponentLibraryVisible(false)}
+        onAdd={handleAddComponent}
+      />
       <Drawer
         title="联动配置"
         open={linkageDrawerVisible}
@@ -357,16 +525,27 @@ const DashboardEditorPage = () => {
         />
       </Drawer>
       <Drawer
-        title={`组件样式 - ${availableCharts.find(c => c.id === parseInt(selectedChartId))?.name || ''}`}
+        title={selectedChartId && String(selectedChartId).startsWith('comp_')
+          ? `大屏组件配置 - ${bigScreenComponents[selectedChartId]?.name || getBigScreenComponentName(bigScreenComponents[selectedChartId]?.component_type)}`
+          : `组件样式 - ${availableCharts.find(c => c.id === parseInt(selectedChartId))?.name || ''}`}
         open={styleDrawerVisible}
         onClose={() => setStyleDrawerVisible(false)}
-        width={360}
+        width={selectedChartId && String(selectedChartId).startsWith('comp_') ? 400 : 360}
       >
-        <ChartStyleConfig
-          chartId={selectedChartId}
-          style={chartStyles[selectedChartId] || {}}
-          onChange={(newStyle) => setChartStyles({ ...chartStyles, [selectedChartId]: newStyle })}
-        />
+        {/* 大屏组件：显示 ComponentConfigPanel；图表：显示原有 ChartStyleConfig（行为不变） */}
+        {selectedChartId && String(selectedChartId).startsWith('comp_') ? (
+          <ComponentConfigPanel
+            component_type={bigScreenComponents[selectedChartId]?.component_type}
+            config={bigScreenComponents[selectedChartId]?.component_config || {}}
+            onChange={(newConfig) => handleComponentConfigChange(selectedChartId, newConfig)}
+          />
+        ) : (
+          <ChartStyleConfig
+            chartId={selectedChartId}
+            style={chartStyles[selectedChartId] || {}}
+            onChange={(newStyle) => setChartStyles({ ...chartStyles, [selectedChartId]: newStyle })}
+          />
+        )}
       </Drawer>
       <Drawer
         title="筛选器配置"
@@ -468,11 +647,13 @@ const LinkageConfig = ({ layout, availableCharts, linkages, onChange }) => {
     onChange(linkages.filter((_, i) => i !== index));
   };
 
-  // 构建图表选项
-  const chartOptions = layout.map(l => {
-    const chart = availableCharts.find(c => c.id === parseInt(l.i));
-    return { label: chart?.name || `图表 ${l.i}`, value: parseInt(l.i) };
-  });
+  // 构建图表选项（仅图表可参与联动，大屏组件无 chart_id，排除以避免 NaN 值）
+  const chartOptions = layout
+    .filter(l => !l.i.startsWith('comp_'))
+    .map(l => {
+      const chart = availableCharts.find(c => c.id === parseInt(l.i));
+      return { label: chart?.name || `图表 ${l.i}`, value: parseInt(l.i) };
+    });
 
   return (
     <div>
@@ -578,10 +759,13 @@ const FilterConfig = ({ layout, availableCharts, filters, onChange }) => {
   const [form] = Form.useForm();
   const [fieldOptions, setFieldOptions] = useState([]);
 
-  const chartOptions = layout.map(l => {
-    const chart = availableCharts.find(c => c.id === parseInt(l.i));
-    return { label: chart?.name || `图表 ${l.i}`, value: parseInt(l.i) };
-  });
+  // 构建图表选项（仅图表可关联筛选器，大屏组件无 chart_id，排除以避免 NaN 值）
+  const chartOptions = layout
+    .filter(l => !l.i.startsWith('comp_'))
+    .map(l => {
+      const chart = availableCharts.find(c => c.id === parseInt(l.i));
+      return { label: chart?.name || `图表 ${l.i}`, value: parseInt(l.i) };
+    });
 
   const handleAdd = () => {
     const values = form.getFieldsValue();
@@ -685,6 +869,14 @@ const PanelDesignConfig = ({ config, onChange, layoutType, panelSize, onPanelSiz
     updateStyleConfig('componentTitle', { ...styleConfig.componentTitle, [key]: value });
   };
 
+  // 粒子配置默认值兜底（密度/颜色/速度）
+  const particleConfig = config.particleConfig || { density: 50, color: '#00ffff', speed: 1 };
+
+  // 粒子配置更新（嵌套在 panelConfig.particleConfig 中）
+  const updateParticleConfig = (key, value) => {
+    updateConfig('particleConfig', { ...particleConfig, [key]: value });
+  };
+
   return (
     <div className="panel-design-config">
       <Form layout="vertical" size="small">
@@ -750,6 +942,78 @@ const PanelDesignConfig = ({ config, onChange, layoutType, panelSize, onPanelSiz
             </Form.Item>
           </>
         )}
+        <Divider style={{ margin: '12px 0' }}>大屏主题</Divider>
+        <Form.Item label="主题模式">
+          <Select value={config.themeMode || 'light'} onChange={v => updateConfig('themeMode', v)}>
+            <Select.Option value="light">浅色 (light)</Select.Option>
+            <Select.Option value="dark">深色 (dark)</Select.Option>
+            <Select.Option value="tech_blue">科技蓝 (tech_blue)</Select.Option>
+            <Select.Option value="night">暗夜 (night)</Select.Option>
+            <Select.Option value="medical_green">医疗青 (medical_green)</Select.Option>
+          </Select>
+        </Form.Item>
+        <Form.Item label="自动刷新间隔">
+          <Select value={config.autoRefreshInterval ?? 0} onChange={v => updateConfig('autoRefreshInterval', v)}>
+            <Select.Option value={0}>关闭</Select.Option>
+            <Select.Option value={5}>5秒</Select.Option>
+            <Select.Option value={10}>10秒</Select.Option>
+            <Select.Option value={30}>30秒</Select.Option>
+            <Select.Option value={60}>1分钟</Select.Option>
+            <Select.Option value={300}>5分钟</Select.Option>
+          </Select>
+        </Form.Item>
+        <Divider style={{ margin: '12px 0' }}>背景效果</Divider>
+        <Form.Item label="粒子动画">
+          <Switch checked={config.particleEnabled || false} onChange={v => updateConfig('particleEnabled', v)} />
+        </Form.Item>
+        {config.particleEnabled && (
+          <>
+            <Form.Item label="粒子密度">
+              <InputNumber min={1} max={100} value={particleConfig.density ?? 50} onChange={v => updateParticleConfig('density', v)} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item label="粒子颜色">
+              <ColorPicker value={particleConfig.color || '#00ffff'} onChange={(color) => updateParticleConfig('color', color.toHexString())} showText />
+            </Form.Item>
+            <Form.Item label="粒子速度">
+              <InputNumber min={0.1} max={3} step={0.1} value={particleConfig.speed ?? 1} onChange={v => updateParticleConfig('speed', v)} style={{ width: '100%' }} />
+            </Form.Item>
+          </>
+        )}
+        <Form.Item label="视频背景">
+          <Input
+            value={config.videoBg || ''}
+            onChange={e => updateConfig('videoBg', e.target.value)}
+            placeholder="请输入视频URL"
+            allowClear
+          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <Upload
+              accept="video/mp4,video/webm"
+              showUploadList={false}
+              action="/api/chat/upload"
+              headers={{ Authorization: `Bearer ${localStorage.getItem('data_vis_token')}` }}
+              onChange={(info) => {
+                if (info.file.status === 'done') {
+                  const fileUrl = info.file.response?.data?.file_url;
+                  if (fileUrl) {
+                    updateConfig('videoBg', fileUrl);
+                    message.success('视频上传成功');
+                  } else {
+                    message.error('视频上传失败');
+                  }
+                } else if (info.file.status === 'error') {
+                  message.error('视频上传失败');
+                }
+              }}
+            >
+              <Button size="small" icon={<UploadOutlined />}>上传视频</Button>
+            </Upload>
+            {config.videoBg && (
+              <Button size="small" danger onClick={() => updateConfig('videoBg', null)}>清除</Button>
+            )}
+          </div>
+          <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>支持 MP4/WebM 视频格式</div>
+        </Form.Item>
       </Form>
       <Divider style={{ margin: '12px 0' }} />
       <Collapse defaultActiveKey={[]} ghost>

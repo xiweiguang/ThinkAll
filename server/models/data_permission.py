@@ -184,7 +184,7 @@ def get_data_permission_config(table_id, user_id=None):
     """查询图表的数据权限开关和匹配字段
 
     从 sys_chart_permissions 表读取当前用户角色对应的数据权限配置。
-    如果用户有多个角色，任一角色开启数据权限则生效（取最严格配置）。
+    如果用户有多个角色，任一角色关闭数据权限则不生效（取最宽松配置/并集）。
     """
     if user_id:
         # 获取用户所有角色
@@ -198,7 +198,15 @@ def get_data_permission_config(table_id, user_id=None):
                 f'SELECT data_permission, match_field, department_field FROM sys_chart_permissions WHERE target_type = %s AND target_id IN ({placeholders}) AND table_id = %s',
                 ['role'] + role_ids + [table_id]
             )
-            # 任一角色开启数据权限则生效
+            # 任一角色关闭数据权限则不生效（并集/最宽松）
+            for row in rows:
+                if row.get('data_permission') == 0:
+                    return {
+                        'enabled': False,
+                        'match_field': None,
+                        'department_field': None
+                    }
+            # 所有角色都开启数据权限才生效，取第一个开启角色的配置
             for row in rows:
                 if row.get('data_permission') == 1:
                     return {
@@ -206,7 +214,7 @@ def get_data_permission_config(table_id, user_id=None):
                         'match_field': row.get('match_field'),
                         'department_field': row.get('department_field')
                     }
-            # 所有角色都未开启数据权限
+            # rows不为空但无开启记录（兼容异常数据）
             if rows:
                 return {
                     'enabled': False,

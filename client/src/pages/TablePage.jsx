@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Card, Typography, Result, Spin, Table as AntTable, Dropdown, message, Button, Radio } from 'antd';
 import dayjs from 'dayjs';
 import { DownloadOutlined, FileImageOutlined, FilePdfOutlined, FileExcelOutlined, FullscreenOutlined, FullscreenExitOutlined, InfoCircleOutlined } from '@ant-design/icons';
@@ -509,6 +509,7 @@ export default function TablePage({ chartId: chartIdProp, initialFilterParams: i
   const [filters, setFilters] = useState({});
   const [allFilteredData, setAllFilteredData] = useState([]);
   const [defaultSortApplied, setDefaultSortApplied] = useState(false);
+  const [userSorted, setUserSorted] = useState(false);
   const [dateLinkageActiveRange, setDateLinkageActiveRange] = useState(null);
   const [dateLinkageStartDate, setDateLinkageStartDate] = useState(null);
   const [dateLinkageEndDate, setDateLinkageEndDate] = useState(null);
@@ -974,6 +975,7 @@ export default function TablePage({ chartId: chartIdProp, initialFilterParams: i
       }
       setFilters(drilldownFilterParams);
       setDefaultSortApplied(false);
+      setUserSorted(false);
       setDataSource([]);
       setChartData([]);
       const sc = tableConfig.styleConfig || {};
@@ -1123,6 +1125,7 @@ export default function TablePage({ chartId: chartIdProp, initialFilterParams: i
         pageSize: newPageSize,
       }));
       setSorter({ sortField: newSortField, sortOrder: newSortOrder });
+      setUserSorted(true);
 
       fetchTableData({
         page: newPage,
@@ -1499,6 +1502,7 @@ export default function TablePage({ chartId: chartIdProp, initialFilterParams: i
               styleConfig={tableConfig.styleConfig || {}}
               drilldownFields={drilldownFieldsList}
               onDrilldown={handleCellDrilldown}
+              userSorted={userSorted}
             />
             {/* 汇总行：当配置了汇总字段时，在表格下方显示合计行 */}
             {(() => {
@@ -1610,6 +1614,7 @@ export default function TablePage({ chartId: chartIdProp, initialFilterParams: i
             styleConfig={tableConfig.styleConfig || {}}
             drilldownFields={drilldownFieldsList}
             onDrilldown={handleCellDrilldown}
+            userSorted={userSorted}
           />
         </div>
       </Card>
